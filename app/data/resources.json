@@ -1,0 +1,86 @@
+{
+  "_note": "Annuaire de démarrage. `verified: false` = numéro/horaires à confirmer auprès de l'organisation avant la démo. region '*' = national.",
+  "resources": [
+    {
+      "name": "Police Nationale (urgence)",
+      "category": "URGENCE", "phone": "17", "region": "*",
+      "hours": "24h/24", "languages": "fr", "for_types": "*", "verified": true,
+      "notes": "Numéro d'urgence national gratuit."
+    },
+    {
+      "name": "Gendarmerie Nationale (urgence)",
+      "category": "URGENCE", "phone": "16", "region": "*",
+      "hours": "24h/24", "languages": "fr", "for_types": "*", "verified": true,
+      "notes": "Numéro d'urgence national gratuit."
+    },
+    {
+      "name": "Sapeurs-Pompiers (secours)",
+      "category": "URGENCE", "phone": "18", "region": "*",
+      "hours": "24h/24", "languages": "fr", "for_types": "VIOLENCE,TERRORISME", "verified": true,
+      "notes": "Blessés, incendies, secours d'urgence."
+    },
+
+    {
+      "name": "UNFPA Burkina Faso — Ligne d'écoute VBG",
+      "category": "SANTE", "phone": null, "region": "*",
+      "hours": "À confirmer", "languages": "fr,mos,dyu", "for_types": "GBV,VIOLENCE", "verified": false,
+      "notes": "Écoute, orientation vers les centres de prise en charge des violences basées sur le genre."
+    },
+    {
+      "name": "CHU Yalgado Ouédraogo",
+      "category": "SANTE", "phone": null, "region": "Centre", "city": "Ouagadougou",
+      "hours": "24h/24 (urgences)", "languages": "fr,mos", "for_types": "*", "verified": false,
+      "notes": "Urgences médicales, prise en charge des victimes de violences."
+    },
+    {
+      "name": "CHU Sourô Sanou",
+      "category": "SANTE", "phone": null, "region": "Hauts-Bassins", "city": "Bobo-Dioulasso",
+      "hours": "24h/24 (urgences)", "languages": "fr,dyu", "for_types": "*", "verified": false,
+      "notes": "Urgences médicales, prise en charge des victimes de violences."
+    },
+    {
+      "name": "Centre de prise en charge VBG (Action sociale)",
+      "category": "SANTE", "phone": null, "region": "*",
+      "hours": "Jours ouvrés", "languages": "fr,mos,dyu", "for_types": "GBV", "verified": false,
+      "notes": "Direction régionale de l'Action sociale la plus proche : accompagnement psychosocial et hébergement d'urgence."
+    },
+
+    {
+      "name": "Brigade de gendarmerie locale",
+      "category": "JUSTICE", "phone": "16", "region": "*",
+      "hours": "24h/24", "languages": "fr", "for_types": "*", "verified": true,
+      "notes": "Composez le 16 pour être mis en relation avec la brigade la plus proche."
+    },
+    {
+      "name": "Association des Femmes Juristes du Burkina Faso (AFJ/BF)",
+      "category": "JUSTICE", "phone": null, "region": "Centre", "city": "Ouagadougou",
+      "hours": "Jours ouvrés", "languages": "fr,mos", "for_types": "GBV,VIOLENCE,MENACE", "verified": false,
+      "notes": "Assistance juridique gratuite aux femmes et aux filles victimes de violences."
+    },
+    {
+      "name": "Médiation / justice communautaire",
+      "category": "JUSTICE", "phone": null, "region": "*",
+      "hours": "Variable", "languages": "fr,mos,dyu", "for_types": "MENACE,VIOLENCE", "verified": false,
+      "notes": "Chefferie coutumière ou comité local de médiation. À renseigner par région."
+    },
+
+    {
+      "name": "Croix-Rouge burkinabè",
+      "category": "ONG", "phone": null, "region": "*",
+      "hours": "Jours ouvrés", "languages": "fr,mos,dyu", "for_types": "*", "verified": false,
+      "notes": "Premiers secours, assistance aux personnes déplacées."
+    },
+    {
+      "name": "CONASUR (secours d'urgence et réhabilitation)",
+      "category": "ONG", "phone": null, "region": "*",
+      "hours": "Jours ouvrés", "languages": "fr", "for_types": "TERRORISME,VIOLENCE", "verified": false,
+      "notes": "Structure nationale d'assistance aux personnes déplacées internes."
+    },
+    {
+      "name": "Ligne d'écoute psychologique",
+      "category": "ONG", "phone": null, "region": "*",
+      "hours": "À confirmer", "languages": "fr,mos,dyu", "for_types": "*", "verified": false,
+      "notes": "Parler à quelqu'un en toute confidentialité. Partenaire à identifier."
+    }
+  ]
+}

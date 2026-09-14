@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>{{ t('choose_lang') }}</h1>
+<div class="stack">
+  {% for code, name in languages %}
+    <a class="btn big" href="/{{ code }}">{{ name }}</a>
+  {% endfor %}
+</div>
+<p class="muted">{{ t('anon_banner') }}</p>
+{% endblock %}

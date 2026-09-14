@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% set lang_path = "/signaler" %}
+{% block title %}{{ t('report_title') }} — {{ t('app_name') }}{% endblock %}
+{% block content %}
+<h1>{{ t('report_title') }}</h1>
+<p class="banner">{{ t('report_intro') }}</p>
+
+{% if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
+
+<form method="post" action="/{{ lang }}/signaler" autocomplete="off">
+  <fieldset>
+    <legend>{{ t('report_type') }}</legend>
+    {% for ty in types %}
+      <label class="choice">
+        <input type="radio" name="type" value="{{ ty.value }}" {% if form.type == ty.value %}checked{% endif %} required>
+        {{ t('type_' ~ ty.value) }}
+      </label>
+    {% endfor %}
+  </fieldset>
+
+  <label for="region">{{ t('report_region') }}</label>
+  <select id="region" name="region" required>
+    <option value="">—</option>
+    {% for r in regions %}
+      <option value="{{ r.name }}" {% if form.region == r.name %}selected{% endif %}>{{ r.name }}</option>
+    {% endfor %}
+  </select>
+
+  <label for="commune">{{ t('report_commune') }}</label>
+  <input id="commune" name="commune" list="communes" maxlength="64" value="{{ form.commune or '' }}">
+  <datalist id="communes">
+    {% for r in regions %}{% for c in r.communes %}<option value="{{ c }}">{% endfor %}{% endfor %}
+  </datalist>
+  <p class="hint">{{ t('report_commune_hint') }}</p>
+
+  <label for="description">{{ t('report_description') }}</label>
+  <textarea id="description" name="description" rows="6" maxlength="2000" required>{{ form.description or '' }}</textarea>
+  <p class="hint">🔒 {{ t('report_description_hint') }}</p>
+
+  <button type="submit" class="btn big primary">{{ t('report_submit') }}</button>
+</form>
+{% endblock %}

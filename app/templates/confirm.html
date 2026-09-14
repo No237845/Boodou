@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}{{ t('confirm_title') }} — {{ t('app_name') }}{% endblock %}
+{% block content %}
+<div class="success">
+  <h1>✓ {{ t('confirm_title') }}</h1>
+  <p>{{ t('confirm_body') }}</p>
+  <p class="muted">{{ t('confirm_nothing_stored') }}</p>
+</div>
+
+<h2>{{ t('confirm_resources') }}</h2>
+{% include "_resources.html" %}
+
+<a class="btn" href="/{{ lang }}">{{ t('nav_home') }}</a>
+{% endblock %}

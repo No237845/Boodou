@@ -1,0 +1,11 @@
+.env
+*.db
+__pycache__/
+*.pyc
+.venv/
+safety_venv/
+~$*
+
+# Documents de spécification (non versionnés)
+*.docx
+*.pdf

@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>{{ t('tagline') }}</h1>
+<p class="banner">{{ t('anon_banner') }}</p>
+
+<div class="stack">
+  <a class="btn big primary" href="/{{ lang }}/signaler">
+    {{ t('home_report') }}<small>{{ t('home_report_sub') }}</small>
+  </a>
+  <a class="btn big" href="/{{ lang }}/ressources?type=GBV">
+    {{ t('home_help_gbv') }}<small>{{ t('home_help_gbv_sub') }}</small>
+  </a>
+  <a class="btn big" href="/{{ lang }}/ressources?cat=JUSTICE">
+    {{ t('home_help_security') }}<small>{{ t('home_help_security_sub') }}</small>
+  </a>
+  <a class="btn big" href="/{{ lang }}/ressources?cat=ONG">
+    {{ t('home_talk') }}<small>{{ t('home_talk_sub') }}</small>
+  </a>
+</div>
+
+{% if emergency %}
+<section class="emergency">
+  <h2>{{ t('home_emergency') }}</h2>
+  <ul class="phones">
+    {% for r in emergency %}
+      <li><a href="tel:{{ r.phone }}">{{ r.phone }}</a> {{ r.name }}</li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}
+
+<p class="muted">{{ t('home_whatsapp') }}</p>
+{% endblock %}

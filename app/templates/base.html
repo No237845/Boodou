@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="{{ lang }}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>{% block title %}{{ t('app_name') }}{% endblock %}</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="/{{ lang }}">{{ t('app_name') }}</a>
+  <a class="exit" href="/quitter" title="{{ t('quick_exit_hint') }}">✕ {{ t('quick_exit') }}</a>
+</header>
+
+<nav class="langs">
+  {% for code, name in languages %}
+    <a href="/{{ code }}{{ lang_path | default('') }}" {% if code == lang %}class="on"{% endif %}>{{ name }}</a>
+  {% endfor %}
+</nav>
+
+<main>
+{% block content %}{% endblock %}
+</main>
+
+<footer>
+  <p>{{ t('footer') }}</p>
+  <p><a href="/{{ lang }}">{{ t('nav_home') }}</a> · <a href="/{{ lang }}/ressources">{{ t('nav_resources') }}</a></p>
+</footer>
+</body>
+</html>

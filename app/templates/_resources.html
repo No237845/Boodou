@@ -1,0 +1,25 @@
+{# Liste de ressources groupées par catégorie. Attend `groups` = [(category, [resources])]. #}
+{% if not groups %}
+  <p class="muted">{{ t('resources_none') }}</p>
+{% endif %}
+{% for cat, items in groups %}
+<section class="cat">
+  <h2>{{ t('cat_' ~ cat.value) }}</h2>
+  <ul class="cards">
+    {% for r in items %}
+    <li class="card">
+      <strong>{{ r.name }}</strong>
+      <span class="meta">
+        {% if r.city %}{{ r.city }}{% elif r.region == '*' %}{{ t('resources_national') }}{% else %}{{ r.region }}{% endif %}
+        {% if r.hours %} · {{ r.hours }}{% endif %}
+      </span>
+      {% if r.notes %}<p>{{ r.notes }}</p>{% endif %}
+      {% if r.phone %}
+        <a class="btn call" href="tel:{{ r.phone }}">📞 {{ t('resources_call') }} {{ r.phone }}</a>
+      {% endif %}
+      {% if not r.verified %}<span class="tag">{{ t('resources_unverified') }}</span>{% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+</section>
+{% endfor %}

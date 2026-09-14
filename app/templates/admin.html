@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Incidents — AlertSécurité</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="/admin">AlertSécurité · Espace partenaire</a>
+  <form method="post" action="/admin/logout"><button class="btn small">Déconnexion</button></form>
+</header>
+
+<main class="wide">
+<h1>Incidents signalés</h1>
+
+{% if not can_decrypt %}
+<p class="banner">🔒 Descriptions chiffrées. Reconnectez-vous avec la clé privée pour les lire,
+ou exportez (<code>/admin/reports</code>) et déchiffrez hors ligne.</p>
+{% endif %}
+
+<section class="tiles">
+  <div class="tile"><span class="n">{{ stats.total }}</span><span>Total</span></div>
+  {% for ty in types %}
+  <div class="tile"><span class="n">{{ stats.by_type.get(ty.value, 0) }}</span><span>{{ type_labels[ty] }}</span></div>
+  {% endfor %}
+  {% for ch, n in stats.by_channel.items() %}
+  <div class="tile"><span class="n">{{ n }}</span><span>{{ ch }}</span></div>
+  {% endfor %}
+</section>
+
+<form method="get" action="/admin" class="filter">
+  <div>
+    <label for="type">Type</label>
+    <select id="type" name="type">
+      <option value="">Tous</option>
+      {% for ty in types %}<option value="{{ ty.value }}" {% if ty.value == selected_type %}selected{% endif %}>{{ type_labels[ty] }}</option>{% endfor %}
+    </select>
+  </div>
+  <div>
+    <label for="region">Région</label>
+    <select id="region" name="region">
+      <option value="">Toutes</option>
+      {% for r in regions %}<option value="{{ r }}" {% if r == selected_region %}selected{% endif %}>{{ r }} ({{ stats.by_region.get(r, 0) }})</option>{% endfor %}
+    </select>
+  </div>
+  <button type="submit" class="btn">Filtrer</button>
+</form>
+
+<p class="muted">{{ rows | length }} incident(s) affiché(s).</p>
+
+<div class="scroll">
+<table>
+  <thead>
+    <tr><th>Date</th><th>Type</th><th>Région</th><th>Commune</th><th>Canal</th><th>Description</th></tr>
+  </thead>
+  <tbody>
+  {% for row in rows %}
+    {% set r = row.report %}
+    <tr>
+      <td class="nowrap">{{ r.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
+      <td><span class="pill t-{{ r.type.value }}">{{ type_labels[r.type] }}</span></td>
+      <td>{{ r.region }}</td>
+      <td>{{ r.commune or '—' }}</td>
+      <td>{{ r.channel.value }}</td>
+      <td class="desc">
+        {% if row.description is not none %}{{ row.description }}
+        {% elif row.decrypt_error %}<span class="error-inline">Erreur de déchiffrement</span>
+        {% else %}<span class="muted">🔒 chiffré</span>{% endif %}
+      </td>
+    </tr>
+  {% else %}
+    <tr><td colspan="6" class="muted">Aucun incident.</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+</main>
+</body>
+</html>

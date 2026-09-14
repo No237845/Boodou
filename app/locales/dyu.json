@@ -1,0 +1,21 @@
+{
+  "_note": "Dioula — traductions de base à VALIDER par un locuteur natif avant la démo. Les clés absentes retombent sur le français.",
+  "app_name": "Boodou",
+  "choose_lang": "I ka kan sugandi",
+  "quick_exit": "Bɔ joona",
+  "home_report": "Ko fɔ",
+  "home_help_gbv": "Dɛmɛ : musow ni sungurunw",
+  "home_help_security": "Dɛmɛ : lakana",
+  "home_talk": "Kuma ni mɔgɔ dɔ ye",
+  "home_emergency": "Kɔrɔtɔ ko ?",
+  "report_title": "Ko fɔ",
+  "report_type": "Ko jumɛn don ?",
+  "report_region": "Mara",
+  "report_description": "Mun kɛra ?",
+  "report_submit": "A ci",
+  "confirm_title": "I ni ce.",
+  "resources_title": "Dɛmɛ yɔrɔw",
+  "resources_call": "Wele",
+  "nav_home": "So",
+  "nav_resources": "Dɛmɛ"
+}
