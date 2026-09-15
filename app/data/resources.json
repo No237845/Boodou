@@ -28,13 +28,13 @@
     },
     {
       "name": "CHU Yalgado Ouédraogo",
-      "category": "SANTE", "phone": null, "region": "Centre", "city": "Ouagadougou",
+      "category": "SANTE", "phone": null, "region": "Kadiogo", "city": "Ouagadougou",
       "hours": "24h/24 (urgences)", "languages": "fr,mos", "for_types": "*", "verified": false,
       "notes": "Urgences médicales, prise en charge des victimes de violences."
     },
     {
       "name": "CHU Sourô Sanou",
-      "category": "SANTE", "phone": null, "region": "Hauts-Bassins", "city": "Bobo-Dioulasso",
+      "category": "SANTE", "phone": null, "region": "Guiriko", "city": "Bobo-Dioulasso",
       "hours": "24h/24 (urgences)", "languages": "fr,dyu", "for_types": "*", "verified": false,
       "notes": "Urgences médicales, prise en charge des victimes de violences."
     },
@@ -53,7 +53,7 @@
     },
     {
       "name": "Association des Femmes Juristes du Burkina Faso (AFJ/BF)",
-      "category": "JUSTICE", "phone": null, "region": "Centre", "city": "Ouagadougou",
+      "category": "JUSTICE", "phone": null, "region": "Kadiogo", "city": "Ouagadougou",
       "hours": "Jours ouvrés", "languages": "fr,mos", "for_types": "GBV,VIOLENCE,MENACE", "verified": false,
       "notes": "Assistance juridique gratuite aux femmes et aux filles victimes de violences."
     },

@@ -1,18 +1,79 @@
 {
-  "_note": "Localisation volontairement grossière (région > commune chef-lieu). Découpage en 13 régions ; adapter si vous utilisez le nouveau découpage 2025 (17 régions).",
+  "_note": "Localisation volontairement grossière (région > commune chef-lieu). Découpage administratif du Burkina Faso en 17 régions adopté en 2025. Les noms des régions utilisent les nouveaux toponymes endogènes.",
   "regions": [
-    {"name": "Boucle du Mouhoun", "communes": ["Dédougou", "Boromo", "Nouna", "Tougan", "Solenzo", "Toma"]},
-    {"name": "Cascades", "communes": ["Banfora", "Sindou", "Niangoloko"]},
-    {"name": "Centre", "communes": ["Ouagadougou", "Komsilga", "Koubri", "Saaba", "Tanghin-Dassouri"]},
-    {"name": "Centre-Est", "communes": ["Tenkodogo", "Koupéla", "Ouargaye", "Garango", "Pouytenga"]},
-    {"name": "Centre-Nord", "communes": ["Kaya", "Kongoussi", "Boulsa", "Barsalogho"]},
-    {"name": "Centre-Ouest", "communes": ["Koudougou", "Léo", "Réo", "Sapouy"]},
-    {"name": "Centre-Sud", "communes": ["Manga", "Kombissiri", "Pô"]},
-    {"name": "Est", "communes": ["Fada N'Gourma", "Diapaga", "Bogandé", "Gayéri", "Pama"]},
-    {"name": "Hauts-Bassins", "communes": ["Bobo-Dioulasso", "Houndé", "Orodara"]},
-    {"name": "Nord", "communes": ["Ouahigouya", "Yako", "Gourcy", "Titao"]},
-    {"name": "Plateau-Central", "communes": ["Ziniaré", "Boussé", "Zorgho"]},
-    {"name": "Sahel", "communes": ["Dori", "Djibo", "Gorom-Gorom", "Sebba"]},
-    {"name": "Sud-Ouest", "communes": ["Gaoua", "Diébougou", "Dano", "Batié"]}
+    {
+      "name": "Bankui",
+      "communes": ["Dédougou", "Boromo", "Solenzo"]
+    },
+    {
+      "name": "Djôrô",
+      "communes": ["Gaoua", "Diébougou", "Dano", "Batié"]
+    },
+    {
+      "name": "Goulmou",
+      "communes": ["Fada N'Gourma", "Pama"]
+    },
+    {
+      "name": "Guiriko",
+      "communes": ["Bobo-Dioulasso", "Orodara", "Houndé"]
+    },
+    {
+      "name": "Kadiogo",
+      "communes": [
+        "Ouagadougou",
+        "Komsilga",
+        "Koubri",
+        "Saaba",
+        "Tanghin-Dassouri"
+      ]
+    },
+    {
+      "name": "Kuilsé",
+      "communes": ["Kaya", "Kongoussi", "Boulsa", "Barsalogho"]
+    },
+    {
+      "name": "Liptako",
+      "communes": ["Dori", "Gorom-Gorom", "Sebba"]
+    },
+    {
+      "name": "Nando",
+      "communes": ["Koudougou", "Léo", "Réo", "Sapouy"]
+    },
+    {
+      "name": "Nakambé",
+      "communes": ["Tenkodogo", "Koupéla", "Ouargaye", "Garango", "Pouytenga"]
+    },
+    {
+      "name": "Nazinon",
+      "communes": ["Manga", "Kombissiri", "Pô"]
+    },
+    {
+      "name": "Oubri",
+      "communes": ["Ziniaré", "Boussé", "Zorgho"]
+    },
+    {
+      "name": "Sirba",
+      "communes": ["Bogandé", "Gayéri"]
+    },
+    {
+      "name": "Soum",
+      "communes": ["Djibo", "Arbinda"]
+    },
+    {
+      "name": "Tannounyan",
+      "communes": ["Banfora", "Sindou", "Niangoloko"]
+    },
+    {
+      "name": "Tapoa",
+      "communes": ["Diapaga", "Kantchari"]
+    },
+    {
+      "name": "Sourou",
+      "communes": ["Tougan", "Nouna", "Toma"]
+    },
+    {
+      "name": "Yaadga",
+      "communes": ["Ouahigouya", "Yako", "Gourcy", "Titao"]
+    }
   ]
 }

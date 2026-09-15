@@ -45,14 +45,58 @@ curl -H "X-Admin-Key: $ADMIN_KEY" https://<serveur>/admin/reports -o reports.jso
 REPORT_PRIVATE_KEY=... python -m scripts.decrypt reports.json
 ```
 
-## API (pour WhatsApp / SMS)
+## Espace partenaire
+
+`/admin` — connexion avec `ADMIN_KEY` et, facultativement, la clé privée pour lire les descriptions (gardée en mémoire le temps de la session, 1 h). Tuiles de statistiques, filtres type / région, tableau des incidents.
+
+## WhatsApp (API Cloud de Meta, numéro réel)
+
+Le bot suit le menu de la fiche : `1-Signaler · 2-Aide VBG · 3-Aide sécurité · 4-Parler à quelqu'un`, précédé du choix de langue. Tester sans Meta :
+
+```bash
+python -m scripts.bot_sim                                   # interactif
+python -m scripts.bot_sim Bonjour 1 1 4 5 "Description…"    # scénario
+```
+
+### Mise en place côté Meta (une fois)
+
+1. **Créer l'app** sur https://developers.facebook.com → *Créer une app* → type *Business* → ajouter le produit **WhatsApp**.
+2. **Numéro de téléphone** : *WhatsApp > API Setup*. Meta fournit un numéro de test gratuit (5 destinataires max, à enregistrer). Pour votre numéro réel : *Ajouter un numéro de téléphone*, vérification par SMS/appel — le numéro **ne doit pas** déjà être utilisé par une app WhatsApp classique ou Business (sinon le supprimer de l'app d'abord).
+3. Relever sur cette page le **Phone number ID** et le **jeton d'accès temporaire** → `.env` (`WHATSAPP_PHONE_NUMBER_ID`, `WHATSAPP_ACCESS_TOKEN`).
+4. **Clé secrète** : *Paramètres de l'app > Général > Clé secrète* → `WHATSAPP_APP_SECRET` (obligatoire en prod : c'est ce qui prouve que le webhook vient bien de Meta).
+5. Choisir un `WHATSAPP_VERIFY_TOKEN` quelconque dans `.env`, redémarrer le serveur.
+
+### Exposer le webhook
+
+Meta exige une URL **HTTPS publique**. En local, un tunnel :
+
+```bash
+ngrok http 8000          # → https://xxxx.ngrok-free.app
+```
+
+Puis *WhatsApp > Configuration > Webhook* :
+- **URL de rappel** : `https://xxxx.ngrok-free.app/webhooks/whatsapp`
+- **Jeton de vérification** : la valeur de `WHATSAPP_VERIFY_TOKEN`
+- *Vérifier et enregistrer* → le serveur répond au `hub.challenge`
+- **Champs de webhook** : s'abonner à `messages`
+
+Envoyez « Bonjour » au numéro depuis WhatsApp : le bot répond avec le choix de langue.
+
+### En production
+
+- Remplacer le jeton temporaire (24 h) par un **jeton System User** permanent (*Business Settings > System Users > Générer un jeton*, permission `whatsapp_business_messaging`).
+- Les sessions du bot sont en mémoire : un seul worker (`uvicorn --workers 1`), sinon les basculer en base/Redis.
+- Meta n'autorise les réponses libres que dans les **24 h** suivant le dernier message de l'utilisateur ; au-delà il faut un *message template* approuvé. Pour ce service ce n'est pas un problème : c'est toujours l'utilisateur qui écrit en premier.
+
+## API (SMS et autres canaux)
 
 Documentation interactive : `/api/docs`.
 
 - `GET /api/regions` — régions et communes
-- `GET /api/resources?type=GBV&region=Centre&category=SANTE` — ressources filtrées
+- `GET /api/resources?type=GBV&region=Kadiogo&category=SANTE` — ressources filtrées
 - `POST /api/reports` — `{type, region, commune?, description, channel, lang}`
-- `GET /admin/stats`, `GET /admin/reports` — en-tête `X-Admin-Key`
+- `GET /admin/stats`, `GET /admin/reports` — en-tête `X-Admin-Key` ou session admin
+- `GET/POST /webhooks/whatsapp` — webhook Meta
 
 ## Structure
 
@@ -64,19 +108,21 @@ app/
   services.py      logique métier partagée web / API / bots
   crypto.py        sealed box libsodium
   i18n.py          traductions avec repli sur le français
-  routers/         web.py (HTML), api.py (JSON), admin.py (partenaire)
+  routers/         web.py (HTML), api.py (JSON), admin.py (partenaire), whatsapp.py (webhook Meta)
+  bot/engine.py    moteur de menu numéroté, commun WhatsApp / SMS
   templates/       Jinja2, zéro JS
-  locales/         fr.json, mos.json, dyu.json
-  data/            regions.json, resources.json
+  locales/         fr.json, mos.json, dyu.json (textes web + bot)
+  data/            regions.json (17 régions, 2025), resources.json
 scripts/
   gen_keys.py      génération de la paire de clés
   decrypt.py       déchiffrement hors ligne (partenaire)
+  bot_sim.py       simulateur du bot en ligne de commande
 ```
 
 ## À faire avant la démo
 
 - [ ] **Vérifier les numéros** dans `app/data/resources.json` (`verified: false`) : UNFPA, CHU Yalgado, AFJ/BF, Croix-Rouge, ligne d'écoute. Seuls 17 / 16 / 18 sont confirmés.
-- [ ] **Faire relire les traductions Mooré et Dioula** par un locuteur natif (`app/locales/mos.json`, `dyu.json` — les clés manquantes retombent sur le français).
-- [ ] Adapter `regions.json` si l'équipe préfère le découpage 2025 en 17 régions.
-- [ ] Phase 3 : bot WhatsApp (Meta Cloud API / Twilio) + SMS (Africa's Talking) sur le moteur de menu, en appelant `/api/*`.
-- [ ] Phase 4 : déploiement (Railway / Render), rate limiting sur `POST /api/reports`.
+- [ ] **Faire relire les traductions Mooré et Dioula** par un locuteur natif (`app/locales/mos.json`, `dyu.json` — les clés manquantes retombent sur le français). Pour le Mooré, `app/locales/mos_review.md` liste côte à côte FR / Mooré : les clés dans `_auto` sont un premier jet produit par `python -m scripts.translate_locales` (modèle NLLB local, dépendances `requirements-ml.txt`, hors prod), celles dans `_todo` sont à traduire à la main. Une fois une clé relue, la retirer de `_auto`.
+- [ ] Brancher le numéro WhatsApp réel (section ci-dessus) et tester depuis un téléphone.
+- [ ] SMS (Africa's Talking / Orange API) : même moteur `app/bot/engine.py`, il ne manque que le webhook.
+- [ ] Déploiement (Railway / Render), rate limiting sur `POST /api/reports`, retirer la clé privée du `.env`.

@@ -52,5 +52,21 @@
 
   "nav_home": "Accueil",
   "nav_resources": "Ressources",
-  "footer": "Service anonyme. Vos données sont chiffrées de bout en bout."
+  "footer": "Service anonyme. Vos données sont chiffrées de bout en bout.",
+
+  "bot_welcome": "Bonjour, ici *Boodou* 🛡️\nService anonyme de signalement et d'aide.\n\nChoisissez votre langue / Yãk y buud-gomde / I ka kan sugandi :\n1 - Français\n2 - Mooré\n3 - Dioula",
+  "bot_menu": "Que cherchez-vous ?\n\n1 - Signaler un incident\n2 - Ressources d'aide (violences faites aux femmes)\n3 - Ressources d'aide (sécurité)\n4 - Parler à quelqu'un\n\n_Urgence : Police 17 · Gendarmerie 16 · Pompiers 18_",
+  "bot_invalid": "Je n'ai pas compris. Répondez avec le numéro de votre choix.\nTapez 0 pour revenir au menu.",
+  "bot_ask_type": "De quoi s'agit-il ?\n\n1 - Violence physique\n2 - Menace ou intimidation\n3 - Violence faite à une femme ou une fille\n4 - Attaque ou activité terroriste\n\n0 - Retour au menu",
+  "bot_ask_region": "Dans quelle région ? (approximatif, jamais votre adresse)\n\n{regions}\n\n0 - Retour au menu",
+  "bot_ask_region_optional": "Dans quelle région cherchez-vous de l'aide ?\n\n{regions}\n\n99 - Peu importe / national\n0 - Retour au menu",
+  "bot_ask_description": "Décrivez ce qui s'est passé, en quelques phrases.\n⚠️ Ne donnez aucun nom ni numéro de téléphone.\n\n🔒 Votre message sera chiffré : seule l'organisation partenaire pourra le lire.\n\n0 - Annuler",
+  "bot_report_done": "✅ *Merci.* Votre signalement a été envoyé de façon anonyme et chiffrée.\nAucune information permettant de vous identifier n'a été conservée.",
+  "bot_resources_intro": "Ressources disponibles :",
+  "bot_resources_none": "Aucune ressource trouvée pour cette région. Voici les numéros nationaux :",
+  "bot_back_hint": "\n\nTapez 0 pour revenir au menu.",
+  "bot_talk": "Vous n'êtes pas seul(e). Voici des lignes d'écoute confidentielles :",
+  "bot_call": "Appeler",
+  "bot_unverified": "(à confirmer)",
+  "bot_session_expired": "Votre session a expiré. On recommence :"
 }

@@ -43,5 +43,21 @@ class Settings(BaseSettings):
     default_lang: str = "fr"
     languages: list[str] = ["fr", "mos", "dyu"]
 
+    # --- WhatsApp Cloud API (Meta) ---
+    # Jeton choisi par vous, à recopier dans Meta > WhatsApp > Configuration > Webhook.
+    whatsapp_verify_token: str = ""
+    # Jeton d'accès (temporaire en dev, "System user" permanent en prod).
+    whatsapp_access_token: str = ""
+    # "Phone number ID" affiché dans Meta > WhatsApp > API Setup (pas le numéro lui-même).
+    whatsapp_phone_number_id: str = ""
+    # "App secret" (Meta > Paramètres de l'app > Général) : sert à vérifier la signature des webhooks.
+    whatsapp_app_secret: str = ""
+    whatsapp_api_version: str = "v21.0"
+
+    # Sel pour hacher les numéros de téléphone (clé de session du bot). Le numéro
+    # en clair n'est jamais stocké : seul le hash vit en mémoire ~15 min.
+    bot_phone_salt: str = "change-me-too"
+    bot_session_ttl: int = 15 * 60
+
 
 settings = Settings()

@@ -1,0 +1,7 @@
+# Dépendances OPTIONNELLES, hors production : uniquement pour
+# `python -m scripts.translate_locales` (premier jet des traductions Mooré).
+# Installer dans le venv :  pip install -r requirements-ml.txt
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch>=2.2
+transformers>=4.40
+sentencepiece>=0.2

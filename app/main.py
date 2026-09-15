@@ -7,7 +7,7 @@ from fastapi.staticfiles import StaticFiles
 
 from .config import BASE_DIR, settings
 from .db import Base, SessionLocal, engine
-from .routers import admin, api, web
+from .routers import admin, api, web, whatsapp
 from .seed import seed_resources
 
 # Aucun log d'accès : on ne veut ni IP, ni user-agent, ni URL visitée dans les journaux.
@@ -62,4 +62,6 @@ def healthz():
 
 app.include_router(api.router)
 app.include_router(admin.router)
-app.include_router(web.router)
+app.include_router(whatsapp.router)
+app.include_router(web.router)  # en dernier : /{lang} est un attrape-tout
+#& ".\safety_venv\Scripts\uvicorn.exe" app.main:app --reload --no-access-log --port 8000
