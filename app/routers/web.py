@@ -5,12 +5,13 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 
+from .. import ratelimit
 from ..config import BASE_DIR, settings
 from ..db import get_db
 from ..i18n import LANG_NAMES, normalize_lang, translator
-from ..models import Channel, ReportType, ResourceCategory
+from ..models import Channel, ReportType, ResourceCategory, format_code
 from ..seed import load_regions, region_names
-from ..services import ValidationError, create_report, find_resources, group_by_category
+from ..services import ValidationError, create_report, find_report, find_resources, group_by_category
 
 router = APIRouter(include_in_schema=False)
 templates = Jinja2Templates(directory=BASE_DIR / "templates")
@@ -59,7 +60,7 @@ def report_submit(
 ):
     lang = normalize_lang(lang)
     try:
-        create_report(
+        report = create_report(
             db,
             type_=type,
             region=region,
@@ -80,16 +81,67 @@ def report_submit(
             error=t(e.key, **e.params),
         )
     # PRG : un rafraîchissement ne renvoie jamais le formulaire une deuxième fois.
-    # Seuls type et région (non identifiants) passent dans l'URL pour cibler les ressources.
-    return RedirectResponse(f"/{lang}/merci?type={type}&region={region}", status_code=303)
+    # Type, région et code de suivi passent dans l'URL. Sur un téléphone partagé
+    # l'historique les expose — c'est le même arbitrage que pour type/région, et
+    # la page rappelle à la personne d'utiliser "Quitter vite" en partant.
+    return RedirectResponse(
+        f"/{lang}/merci?type={type}&region={region}&code={report.id}", status_code=303
+    )
 
 
 @router.get("/{lang}/merci", response_class=HTMLResponse)
-def confirmation(request: Request, lang: str, type: str = "", region: str = "", db: Session = Depends(get_db)):
+def confirmation(
+    request: Request,
+    lang: str,
+    type: str = "",
+    region: str = "",
+    code: str = "",
+    db: Session = Depends(get_db),
+):
     rtype = ReportType(type) if type in ReportType.__members__ else None
     region = region if region in region_names() else None
     resources = find_resources(db, type_=rtype, region=region)
-    return render(request, "confirm.html", lang, groups=group_by_category(resources))
+    # Le code n'est affiché que s'il correspond à un signalement réel : une URL
+    # bricolée à la main n'invente pas un code de suivi.
+    report = find_report(db, code) if code else None
+    return render(
+        request,
+        "confirm.html",
+        lang,
+        groups=group_by_category(resources),
+        code=format_code(report.id) if report else None,
+    )
+
+
+@router.get("/{lang}/suivi", response_class=HTMLResponse)
+def track_form(request: Request, lang: str):
+    return render(request, "track.html", lang, report=None, code="", error=None)
+
+
+@router.post("/{lang}/suivi", response_class=HTMLResponse)
+def track_lookup(
+    request: Request,
+    lang: str,
+    code: str = Form(""),
+    db: Session = Depends(get_db),
+):
+    """Consultation d'un code de suivi.
+
+    Réponse rendue directement (pas de redirection) : le code reste dans le
+    corps de la requête, jamais dans l'URL ni dans l'historique du navigateur.
+    Un rafraîchissement rejoue une simple lecture, sans effet de bord.
+    """
+    lang = normalize_lang(lang)
+    t = translator(lang)
+    # request.client.host seulement : un en-tête X-Forwarded-For est falsifiable
+    # et permettrait de contourner la limite en variant sa valeur.
+    if not ratelimit.allow(request.client.host if request.client else None):
+        return render(request, "track.html", lang, report=None, code="", error=t("track_too_many"))
+
+    report = find_report(db, code)
+    if report is None:
+        return render(request, "track.html", lang, report=None, code=code, error=t("track_not_found"))
+    return render(request, "track.html", lang, report=report, code=format_code(report.id), error=None)
 
 
 @router.get("/{lang}/ressources", response_class=HTMLResponse)

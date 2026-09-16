@@ -11,6 +11,7 @@ Confidentialité :
 
 États :  LANG -> MENU -> REPORT_TYPE -> REPORT_REGION -> REPORT_DESC -> MENU
          LANG -> MENU -> RES_REGION -> MENU
+         LANG -> MENU -> TRACK_CODE -> MENU
 """
 
 import hashlib
@@ -20,16 +21,20 @@ from dataclasses import dataclass, field
 
 from sqlalchemy.orm import Session
 
+from .. import ratelimit
 from ..config import settings
 from ..i18n import t
-from ..models import Channel, ReportType, ResourceCategory
+from ..models import Channel, ReportType, ResourceCategory, format_code
 from ..seed import region_names
-from ..services import ValidationError, create_report, find_resources
+from ..services import ValidationError, create_report, find_report, find_resources
 
-LANG_CHOICES = {"1": "fr", "2": "mos", "3": "dyu"}
+LANG_CHOICES = {"1": "fr", "2": "mos", "3": "dyu", "4": "en"}
 TYPE_CHOICES = {"1": ReportType.VIOLENCE, "2": ReportType.MENACE, "3": ReportType.GBV, "4": ReportType.TERRORISME}
 MENU_KEYWORDS = {"0", "menu", "annuler", "retour", "stop"}
 RESTART_KEYWORDS = {"bonjour", "salut", "hello", "hi", "start", "langue", "language"}
+# Reconnus dans n'importe quel état, y compris au milieu d'une description :
+# quelqu'un qui tape ça est en train de paniquer, on ne lui demande rien d'autre.
+WIPE_KEYWORDS = {"supprimer", "effacer", "supprime", "efface", "delete", "clear"}
 
 # Longueur max d'un message WhatsApp : 4096 caractères. On coupe bien avant.
 MAX_MESSAGE = 3000
@@ -41,6 +46,8 @@ class BotSession:
     state: str = "LANG"
     data: dict = field(default_factory=dict)
     expires: float = 0.0
+    # Numéro haché : sert à limiter le débit sans jamais manipuler le numéro.
+    key: str = ""
 
     def touch(self) -> None:
         self.expires = time.time() + settings.bot_session_ttl
@@ -62,7 +69,7 @@ def _get_session(phone: str) -> BotSession:
     key = phone_key(phone)
     session = _sessions.get(key)
     if session is None:
-        session = _sessions[key] = BotSession()
+        session = _sessions[key] = BotSession(key=key)
     session.touch()
     return session
 
@@ -121,6 +128,12 @@ def handle(db: Session, channel: Channel, phone: str, text: str) -> list[str]:
         session.state, session.data = "LANG", {}
         return [t(lang, "bot_welcome")]
 
+    # Effacement. Traité ici et pas dans `_menu` parce que c'est le seul endroit
+    # où l'on connaît le numéro, donc la session à purger.
+    if low in WIPE_KEYWORDS or (session.state == "MENU" and msg == "6"):
+        reset_session(phone)
+        return [t(lang, "bot_wipe")]
+
     if session.state == "LANG":
         if low in LANG_CHOICES:
             session.lang = lang = LANG_CHOICES[low]
@@ -146,6 +159,9 @@ def _menu(db: Session, channel: Channel, s: BotSession, msg: str) -> list[str]:
     if msg in ("2", "3", "4"):
         s.state, s.data = "RES_REGION", {"choice": msg}
         return [t(lang, "bot_ask_region_optional", regions=_regions_list())]
+    if msg == "5":
+        s.state, s.data = "TRACK_CODE", {}
+        return [t(lang, "bot_ask_code")]
     return [t(lang, "bot_invalid"), t(lang, "bot_menu")]
 
 
@@ -181,15 +197,50 @@ def _report_desc(db: Session, channel: Channel, s: BotSession, msg: str) -> list
     rtype: ReportType = s.data["type"]
     region: str = s.data["region"]
     try:
-        create_report(db, type_=rtype.value, region=region, description=msg, channel=channel, lang=lang)
+        report = create_report(
+            db, type_=rtype.value, region=region, description=msg, channel=channel, lang=lang
+        )
     except ValidationError as e:
         return [t(lang, e.key, **e.params), t(lang, "bot_ask_description")]
     s.state, s.data = "MENU", {}
     resources = find_resources(db, type_=rtype, region=region)
-    out = [t(lang, "bot_report_done")]
+    # Le code part dans son propre message : sur WhatsApp il reste isolable,
+    # donc copiable et transférable sans le reste de la conversation.
+    out = [t(lang, "bot_report_done"), t(lang, "bot_report_code", code=format_code(report.id))]
     out += _format_resources(lang, resources, intro=t(lang, "bot_resources_intro"))
-    out[-1] += t(lang, "bot_back_hint")
+    # Le rappel d'effacement clôt le dernier message : c'est le moment le plus
+    # sensible, et c'est ce qui reste sous les yeux de la personne.
+    out[-1] += t(lang, "bot_back_hint") + t(lang, "bot_wipe_hint")
     return out
+
+
+def _track_code(db: Session, channel: Channel, s: BotSession, msg: str) -> list[str]:
+    lang = s.lang
+    # Même limite que sur le web, indexée sur le numéro haché de la session.
+    if not ratelimit.allow(s.key):
+        s.state, s.data = "MENU", {}
+        return [t(lang, "bot_track_too_many"), t(lang, "bot_menu")]
+
+    report = find_report(db, msg)
+    if report is None:
+        return [t(lang, "bot_track_not_found"), t(lang, "bot_ask_code")]
+
+    s.state, s.data = "MENU", {}
+    # Ni type, ni région, ni description : un code intercepté n'apprend rien
+    # sur l'incident lui-même.
+    text = t(
+        lang,
+        "bot_track_result",
+        code=format_code(report.id),
+        status=t(lang, "status_" + report.status.value),
+        help=t(lang, "status_" + report.status.value + "_help"),
+        sent=report.created_at.strftime("%d/%m/%Y"),
+    )
+    if report.partner_note:
+        # Le mot du partenaire peut être parlant pour qui lit par-dessus l'épaule.
+        text += t(lang, "bot_track_note", note=report.partner_note)
+        return _chunk(text + t(lang, "bot_back_hint") + t(lang, "bot_wipe_hint"))
+    return _chunk(text + t(lang, "bot_back_hint"))
 
 
 def _res_region(db: Session, channel: Channel, s: BotSession, msg: str) -> list[str]:
@@ -229,4 +280,5 @@ _STATES = {
     "REPORT_REGION": _report_region,
     "REPORT_DESC": _report_desc,
     "RES_REGION": _res_region,
+    "TRACK_CODE": _track_code,
 }

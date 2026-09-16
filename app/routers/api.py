@@ -1,13 +1,16 @@
 """API JSON, utilisée par les bots WhatsApp/SMS et par toute autre interface."""
 
-from fastapi import APIRouter, Depends, HTTPException
+from datetime import datetime
+
+from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
+from .. import ratelimit
 from ..db import get_db
-from ..models import Channel, ReportType, ResourceCategory
+from ..models import Channel, ReportStatus, ReportType, ResourceCategory, format_code
 from ..seed import load_regions, region_names
-from ..services import MAX_DESCRIPTION, ValidationError, create_report, find_resources
+from ..services import MAX_DESCRIPTION, ValidationError, create_report, find_report, find_resources
 
 router = APIRouter(prefix="/api", tags=["api"])
 
@@ -23,7 +26,23 @@ class ReportIn(BaseModel):
 
 class ReportOut(BaseModel):
     ok: bool = True
-    # Pas d'identifiant renvoyé : rien à conserver côté utilisateur.
+    # Code de suivi, à transmettre à la personne : c'est le seul lien qu'elle
+    # gardera avec son signalement. Rien n'est conservé de son côté par ailleurs.
+    code: str
+
+
+class TrackOut(BaseModel):
+    """Ce qu'on accepte de révéler à qui présente un code.
+
+    Ni type, ni région, ni description : un code intercepté n'apprend rien sur
+    l'incident.
+    """
+
+    code: str
+    status: ReportStatus
+    created_at: datetime
+    status_at: datetime | None
+    partner_note: str | None
 
 
 class ResourceOut(BaseModel):
@@ -46,7 +65,7 @@ def regions():
 @router.post("/reports", response_model=ReportOut, status_code=201)
 def post_report(payload: ReportIn, db: Session = Depends(get_db)):
     try:
-        create_report(
+        report = create_report(
             db,
             type_=payload.type.value,
             region=payload.region,
@@ -57,7 +76,24 @@ def post_report(payload: ReportIn, db: Session = Depends(get_db)):
         )
     except ValidationError as e:
         raise HTTPException(status_code=422, detail=e.key) from None
-    return ReportOut()
+    return ReportOut(code=format_code(report.id))
+
+
+@router.get("/reports/{code}", response_model=TrackOut)
+def track_report(code: str, request: Request, db: Session = Depends(get_db)):
+    """Suivi d'un signalement par son code. Utilisé par les canaux SMS / USSD."""
+    if not ratelimit.allow(request.client.host if request.client else None):
+        raise HTTPException(status_code=429, detail="too_many_attempts")
+    report = find_report(db, code)
+    if report is None:
+        raise HTTPException(status_code=404, detail="not_found")
+    return TrackOut(
+        code=format_code(report.id),
+        status=report.status,
+        created_at=report.created_at,
+        status_at=report.status_at,
+        partner_note=report.partner_note,
+    )
 
 
 @router.get("/resources", response_model=list[ResourceOut])

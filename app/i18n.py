@@ -1,4 +1,4 @@
-"""Traductions FR / Mooré (mos) / Dioula (dyu).
+"""Traductions FR / Mooré (mos) / Dioula (dyu) / Anglais (en).
 
 Chaque langue est un JSON plat dans app/locales/. Une clé absente dans une
 langue retombe sur le français, pour que l'interface reste toujours complète.
@@ -11,7 +11,7 @@ from .config import BASE_DIR, settings
 
 LOCALES_DIR = BASE_DIR / "locales"
 
-LANG_NAMES = {"fr": "Français", "mos": "Mooré", "dyu": "Dioula"}
+LANG_NAMES = {"fr": "Français", "mos": "Mooré", "dyu": "Dioula", "en": "English"}
 
 
 @lru_cache

@@ -5,6 +5,7 @@ from fastapi import FastAPI, Request
 from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
+from . import migrations
 from .config import BASE_DIR, settings
 from .db import Base, SessionLocal, engine
 from .routers import admin, api, web, whatsapp
@@ -17,6 +18,8 @@ logging.getLogger("uvicorn.access").disabled = True
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     Base.metadata.create_all(bind=engine)
+    # create_all n'ajoute pas les colonnes manquantes à une table déjà en place.
+    migrations.run(engine)
     with SessionLocal() as db:
         seed_resources(db)
     if not settings.report_public_key:

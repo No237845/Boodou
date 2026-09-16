@@ -41,7 +41,7 @@ class Settings(BaseSettings):
     quick_exit_url: str = "https://www.google.com"
 
     default_lang: str = "fr"
-    languages: list[str] = ["fr", "mos", "dyu"]
+    languages: list[str] = ["fr", "mos", "dyu", "en"]
 
     # --- WhatsApp Cloud API (Meta) ---
     # Jeton choisi par vous, à recopier dans Meta > WhatsApp > Configuration > Webhook.

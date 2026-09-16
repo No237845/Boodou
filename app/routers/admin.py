@@ -11,6 +11,7 @@ déconnexion, à l'expiration ou au redémarrage du serveur.
 
 import secrets
 import time
+from urllib.parse import urlencode
 
 from fastapi import APIRouter, Cookie, Depends, Form, Header, HTTPException, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
@@ -21,8 +22,9 @@ from sqlalchemy.orm import Session
 from .. import crypto
 from ..config import BASE_DIR, settings
 from ..db import get_db
-from ..models import Report, ReportType
+from ..models import PARTNER_NOTE_MAX, Report, ReportStatus, ReportType, format_code
 from ..seed import region_names
+from ..services import set_status
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 templates = Jinja2Templates(directory=BASE_DIR / "templates")
@@ -38,6 +40,12 @@ TYPE_LABELS = {
     ReportType.MENACE: "Menace / intimidation",
     ReportType.GBV: "Violence basée sur le genre",
     ReportType.TERRORISME: "Attaque / terrorisme",
+}
+
+STATUS_LABELS = {
+    ReportStatus.RECU: "Reçu",
+    ReportStatus.TRANSMIS: "Pris en charge",
+    ReportStatus.CLOTURE: "Clôturé",
 }
 
 
@@ -75,6 +83,7 @@ def dashboard(
     request: Request,
     type: str = "",
     region: str = "",
+    status: str = "",
     admin_session: str | None = Cookie(default=None),
     db: Session = Depends(get_db),
 ):
@@ -87,6 +96,8 @@ def dashboard(
         stmt = stmt.where(Report.type == ReportType(type))
     if region in region_names():
         stmt = stmt.where(Report.region == region)
+    if status in ReportStatus.__members__:
+        stmt = stmt.where(Report.status == ReportStatus(status))
     reports = db.execute(stmt.limit(500)).scalars().all()
 
     private_key = session.get("private_key")
@@ -99,7 +110,14 @@ def dashboard(
                 description = crypto.decrypt(r.ciphertext, private_key)
             except Exception:
                 decrypt_error = True
-        rows.append({"report": r, "description": description, "decrypt_error": decrypt_error})
+        rows.append(
+            {
+                "report": r,
+                "code": format_code(r.id),
+                "description": description,
+                "decrypt_error": decrypt_error,
+            }
+        )
 
     return templates.TemplateResponse(
         request,
@@ -110,9 +128,13 @@ def dashboard(
             "can_decrypt": bool(private_key),
             "types": list(ReportType),
             "type_labels": TYPE_LABELS,
+            "statuses": list(ReportStatus),
+            "status_labels": STATUS_LABELS,
+            "note_max": PARTNER_NOTE_MAX,
             "regions": region_names(),
             "selected_type": type,
             "selected_region": region,
+            "selected_status": status,
         },
     )
 
@@ -155,6 +177,42 @@ def login(
     return response
 
 
+@router.post("/reports/{report_id}/statut", include_in_schema=False)
+def update_status(
+    report_id: str,
+    status: str = Form(""),
+    partner_note: str = Form(""),
+    f_type: str = Form(""),
+    f_region: str = Form(""),
+    f_status: str = Form(""),
+    admin_session: str | None = Cookie(default=None),
+    db: Session = Depends(get_db),
+):
+    """Fait avancer un signalement et écrit, au besoin, un mot à la personne.
+
+    Pas de jeton anti-CSRF : le cookie de session est `SameSite=Strict`, donc
+    aucune page tierce ne peut déclencher cette requête au nom du partenaire.
+    """
+    if _session(admin_session) is None:
+        raise HTTPException(status_code=401, detail="unauthorized")
+    if status not in ReportStatus.__members__:
+        raise HTTPException(status_code=422, detail="unknown_status")
+
+    report = db.get(Report, report_id)
+    if report is None:
+        raise HTTPException(status_code=404, detail="not_found")
+    set_status(db, report, status=ReportStatus(status), note=partner_note)
+
+    # On revient à la vue filtrée d'où vient le partenaire. Les filtres sont
+    # revalidés ici plutôt que réinjectés tels quels depuis le formulaire.
+    back = {
+        "type": f_type if f_type in ReportType.__members__ else "",
+        "region": f_region if f_region in region_names() else "",
+        "status": f_status if f_status in ReportStatus.__members__ else "",
+    }
+    return RedirectResponse(f"/admin?{urlencode(back)}", status_code=303)
+
+
 @router.post("/logout", include_in_schema=False)
 def logout(admin_session: str | None = Cookie(default=None)):
     if admin_session:
@@ -171,11 +229,13 @@ def _stats(db: Session) -> dict:
     by_type = db.execute(select(Report.type, func.count()).group_by(Report.type)).all()
     by_region = db.execute(select(Report.region, func.count()).group_by(Report.region)).all()
     by_channel = db.execute(select(Report.channel, func.count()).group_by(Report.channel)).all()
+    by_status = db.execute(select(Report.status, func.count()).group_by(Report.status)).all()
     return {
         "total": db.scalar(select(func.count()).select_from(Report)) or 0,
         "by_type": {t.value: n for t, n in by_type},
         "by_region": dict(sorted(by_region, key=lambda x: -x[1])),
         "by_channel": {c.value: n for c, n in by_channel},
+        "by_status": {s.value: n for s, n in by_status},
     }
 
 
@@ -197,6 +257,9 @@ def export_reports(db: Session = Depends(get_db)):
             "channel": r.channel.value,
             "lang": r.lang,
             "created_at": r.created_at.isoformat(),
+            "status": r.status.value,
+            "partner_note": r.partner_note,
+            "status_at": r.status_at.isoformat() if r.status_at else None,
             "ciphertext": r.ciphertext,
         }
         for r in rows

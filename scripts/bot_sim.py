@@ -8,6 +8,7 @@ Utile pour tester le moteur de menu et les textes avant de brancher Meta.
 
 import sys
 
+from app import migrations
 from app.bot import engine
 from app.db import Base, SessionLocal, engine as db_engine
 from app.models import Channel
@@ -24,6 +25,7 @@ def say(text: str) -> None:
 
 def main() -> None:
     Base.metadata.create_all(bind=db_engine)
+    migrations.run(db_engine)
     with SessionLocal() as db:
         seed_resources(db)
     engine.reset_session(PHONE)

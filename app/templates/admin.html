@@ -31,6 +31,12 @@ ou exportez (<code>/admin/reports</code>) et déchiffrez hors ligne.</p>
   {% endfor %}
 </section>
 
+<section class="tiles">
+  {% for st in statuses %}
+  <div class="tile s-{{ st.value }}"><span class="n">{{ stats.by_status.get(st.value, 0) }}</span><span>{{ status_labels[st] }}</span></div>
+  {% endfor %}
+</section>
+
 <form method="get" action="/admin" class="filter">
   <div>
     <label for="type">Type</label>
@@ -46,6 +52,13 @@ ou exportez (<code>/admin/reports</code>) et déchiffrez hors ligne.</p>
       {% for r in regions %}<option value="{{ r }}" {% if r == selected_region %}selected{% endif %}>{{ r }} ({{ stats.by_region.get(r, 0) }})</option>{% endfor %}
     </select>
   </div>
+  <div>
+    <label for="status">Statut</label>
+    <select id="status" name="status">
+      <option value="">Tous</option>
+      {% for st in statuses %}<option value="{{ st.value }}" {% if st.value == selected_status %}selected{% endif %}>{{ status_labels[st] }}</option>{% endfor %}
+    </select>
+  </div>
   <button type="submit" class="btn">Filtrer</button>
 </form>
 
@@ -54,25 +67,40 @@ ou exportez (<code>/admin/reports</code>) et déchiffrez hors ligne.</p>
 <div class="scroll">
 <table>
   <thead>
-    <tr><th>Date</th><th>Type</th><th>Région</th><th>Commune</th><th>Canal</th><th>Description</th></tr>
+    <tr><th>Date</th><th>Code</th><th>Type</th><th>Région</th><th>Canal</th><th>Description</th><th>Suivi</th></tr>
   </thead>
   <tbody>
   {% for row in rows %}
     {% set r = row.report %}
     <tr>
       <td class="nowrap">{{ r.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
+      <td class="nowrap"><code>{{ row.code }}</code></td>
       <td><span class="pill t-{{ r.type.value }}">{{ type_labels[r.type] }}</span></td>
-      <td>{{ r.region }}</td>
-      <td>{{ r.commune or '—' }}</td>
+      <td>{{ r.region }}{% if r.commune %}<br><span class="muted">{{ r.commune }}</span>{% endif %}</td>
       <td>{{ r.channel.value }}</td>
       <td class="desc">
         {% if row.description is not none %}{{ row.description }}
         {% elif row.decrypt_error %}<span class="error-inline">Erreur de déchiffrement</span>
         {% else %}<span class="muted">🔒 chiffré</span>{% endif %}
       </td>
+      {# La personne qui a signalé lit ce statut et ce message avec son code. #}
+      <td class="track">
+        <form method="post" action="/admin/reports/{{ r.id }}/statut">
+          <input type="hidden" name="f_type" value="{{ selected_type }}">
+          <input type="hidden" name="f_region" value="{{ selected_region }}">
+          <input type="hidden" name="f_status" value="{{ selected_status }}">
+          <select name="status" aria-label="Statut">
+            {% for st in statuses %}<option value="{{ st.value }}" {% if st == r.status %}selected{% endif %}>{{ status_labels[st] }}</option>{% endfor %}
+          </select>
+          <textarea name="partner_note" rows="2" maxlength="{{ note_max }}"
+                    placeholder="Mot à la personne (facultatif) — aucun nom, aucun détail identifiant.">{{ r.partner_note or '' }}</textarea>
+          <button type="submit" class="btn small">Enregistrer</button>
+          {% if r.status_at %}<span class="muted">maj {{ r.status_at.strftime('%d/%m/%Y') }}</span>{% endif %}
+        </form>
+      </td>
     </tr>
   {% else %}
-    <tr><td colspan="6" class="muted">Aucun incident.</td></tr>
+    <tr><td colspan="7" class="muted">Aucun incident.</td></tr>
   {% endfor %}
   </tbody>
 </table>

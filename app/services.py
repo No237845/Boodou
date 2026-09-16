@@ -1,10 +1,21 @@
 """Logique métier partagée par le web, l'API et (plus tard) les bots WhatsApp/SMS."""
 
+from datetime import datetime, timezone
+
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from . import crypto
-from .models import Channel, Report, ReportType, Resource, ResourceCategory
+from .models import (
+    PARTNER_NOTE_MAX,
+    Channel,
+    Report,
+    ReportStatus,
+    ReportType,
+    Resource,
+    ResourceCategory,
+    normalize_code,
+)
 from .seed import region_names
 
 MAX_DESCRIPTION = 2000
@@ -56,6 +67,33 @@ def create_report(
         lang=lang,
     )
     db.add(report)
+    db.commit()
+    return report
+
+
+# --------------------------------------------------------------------------- suivi
+
+
+def find_report(db: Session, code: str) -> Report | None:
+    """Retrouve un signalement à partir d'un code de suivi saisi à la main."""
+    code = normalize_code(code)
+    if not code:
+        return None
+    return db.get(Report, code)
+
+
+def set_status(
+    db: Session,
+    report: Report,
+    *,
+    status: ReportStatus,
+    note: str | None = None,
+) -> Report:
+    """Fait avancer un signalement. Appelé par l'espace partenaire uniquement."""
+    report.status = status
+    if note is not None:
+        report.partner_note = note.strip()[:PARTNER_NOTE_MAX] or None
+    report.status_at = datetime.now(timezone.utc)
     db.commit()
     return report
 
