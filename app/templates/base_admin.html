@@ -1,0 +1,18 @@
+{# Gabarit de l'espace admin. Rendu par routers/admin.py, sans contexte de
+   traduction : cet espace est en français uniquement, il n'est pas public.
+   Ni sélecteur de langue ni bouton "Quitter vite" — ils n'ont de sens que pour
+   la personne qui signale. #}
+{% extends "_layout.html" %}
+
+{% block title %}{% block page_title %}Administration{% endblock %} — Boodou{% endblock %}
+
+{% block body %}
+<header class="top">
+  <a class="brand" href="/admin">Boodou · Administration</a>
+  {% block header_action %}{% endblock %}
+</header>
+
+<main class="{% block main_class %}{% endblock %}">
+{% block content %}{% endblock %}
+</main>
+{% endblock %}

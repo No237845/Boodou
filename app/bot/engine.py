@@ -9,7 +9,8 @@ Confidentialité :
 - la description du signalement est chiffrée par `services.create_report` comme
   sur le web ; seuls type / région / canal / langue restent en clair.
 
-États :  LANG -> MENU -> REPORT_TYPE -> REPORT_REGION -> REPORT_DESC -> MENU
+États :  LANG -> MENU -> REPORT_TYPE -> REPORT_SUBTYPE -> REPORT_REGION
+                      -> REPORT_COMMUNE -> REPORT_TO -> REPORT_DESC -> MENU
          LANG -> MENU -> RES_REGION -> MENU
          LANG -> MENU -> TRACK_CODE -> MENU
 """
@@ -24,12 +25,12 @@ from sqlalchemy.orm import Session
 from .. import ratelimit
 from ..config import settings
 from ..i18n import t
-from ..models import Channel, ReportType, ResourceCategory, format_code
-from ..seed import region_names
-from ..services import ValidationError, create_report, find_report, find_resources
+from ..models import SUBTYPES, ActorRole, Channel, ReportSubtype, ReportType, ResourceCategory, format_code
+from ..seed import communes_of, region_names
+from ..services import ValidationError, create_report, find_report, find_resources, public_relais
 
 LANG_CHOICES = {"1": "fr", "2": "mos", "3": "dyu", "4": "en"}
-TYPE_CHOICES = {"1": ReportType.VIOLENCE, "2": ReportType.MENACE, "3": ReportType.GBV, "4": ReportType.TERRORISME}
+TYPES = list(SUBTYPES)  # VBG puis sécurité, dans l'ordre du menu
 MENU_KEYWORDS = {"0", "menu", "annuler", "retour", "stop"}
 RESTART_KEYWORDS = {"bonjour", "salut", "hello", "hi", "start", "langue", "language"}
 # Reconnus dans n'importe quel état, y compris au milieu d'une description :
@@ -81,8 +82,27 @@ def reset_session(phone: str) -> None:
 # --------------------------------------------------------------------------- rendu
 
 
+def _numbered(items: list[str]) -> str:
+    return "\n".join(f"{i} - {label}" for i, label in enumerate(items, start=1))
+
+
+def _pick(msg: str, items: list) -> object | None:
+    """Élément choisi par son numéro (1..n), ou None."""
+    if msg.isdigit() and 1 <= int(msg) <= len(items):
+        return items[int(msg) - 1]
+    return None
+
+
 def _regions_list() -> str:
-    return "\n".join(f"{i} - {name}" for i, name in enumerate(region_names(), start=1))
+    return _numbered(region_names())
+
+
+def _types_list(lang: str) -> str:
+    return _numbered([t(lang, "type_" + ty.value) for ty in TYPES])
+
+
+def _subtypes_list(lang: str, rtype: ReportType) -> str:
+    return _numbered([t(lang, "subtype_" + s.value) for s in SUBTYPES[rtype]])
 
 
 def _format_resources(lang: str, resources, intro: str = "") -> list[str]:
@@ -94,8 +114,7 @@ def _format_resources(lang: str, resources, intro: str = "") -> list[str]:
             lines.append(f"\n*{t(lang, 'cat_' + r.category.value)}*")
         where = r.city or (t(lang, "resources_national") if r.region == "*" else r.region)
         phone = f" 📞 {r.phone}" if r.phone else ""
-        flag = "" if r.verified else f" {t(lang, 'bot_unverified')}"
-        lines.append(f"• {r.name}{phone}{flag}\n  {where}{' · ' + r.hours if r.hours else ''}")
+        lines.append(f"• {r.name}{phone}\n  {where}{' · ' + r.hours if r.hours else ''}")
     return _chunk("\n".join(lines).strip())
 
 
@@ -155,7 +174,7 @@ def _menu(db: Session, channel: Channel, s: BotSession, msg: str) -> list[str]:
     lang = s.lang
     if msg == "1":
         s.state, s.data = "REPORT_TYPE", {}
-        return [t(lang, "bot_ask_type")]
+        return [t(lang, "bot_ask_type", choices=_types_list(lang))]
     if msg in ("2", "3", "4"):
         s.state, s.data = "RES_REGION", {"choice": msg}
         return [t(lang, "bot_ask_region_optional", regions=_regions_list())]
@@ -165,11 +184,26 @@ def _menu(db: Session, channel: Channel, s: BotSession, msg: str) -> list[str]:
     return [t(lang, "bot_invalid"), t(lang, "bot_menu")]
 
 
+# --------------------------------------------------------------------------- signalement
+
+
 def _report_type(db: Session, channel: Channel, s: BotSession, msg: str) -> list[str]:
     lang = s.lang
-    if msg not in TYPE_CHOICES:
-        return [t(lang, "bot_invalid"), t(lang, "bot_ask_type")]
-    s.data["type"] = TYPE_CHOICES[msg]
+    rtype = _pick(msg, TYPES)
+    if rtype is None:
+        return [t(lang, "bot_invalid"), t(lang, "bot_ask_type", choices=_types_list(lang))]
+    s.data["type"] = rtype
+    s.state = "REPORT_SUBTYPE"
+    return [t(lang, "bot_ask_subtype", choices=_subtypes_list(lang, rtype))]
+
+
+def _report_subtype(db: Session, channel: Channel, s: BotSession, msg: str) -> list[str]:
+    lang = s.lang
+    rtype: ReportType = s.data["type"]
+    sub = _pick(msg, SUBTYPES[rtype])
+    if sub is None:
+        return [t(lang, "bot_invalid"), t(lang, "bot_ask_subtype", choices=_subtypes_list(lang, rtype))]
+    s.data["subtype"] = sub
     s.state = "REPORT_REGION"
     return [t(lang, "bot_ask_region", regions=_regions_list())]
 
@@ -188,6 +222,48 @@ def _report_region(db: Session, channel: Channel, s: BotSession, msg: str) -> li
     if region is None:
         return [t(lang, "bot_invalid"), t(lang, "bot_ask_region", regions=_regions_list())]
     s.data["region"] = region
+    s.state = "REPORT_COMMUNE"
+    return [t(lang, "bot_ask_commune", communes=_numbered(communes_of(region)))]
+
+
+def _report_commune(db: Session, channel: Channel, s: BotSession, msg: str) -> list[str]:
+    lang = s.lang
+    communes = communes_of(s.data["region"])
+    commune = _pick(msg, communes) or next((c for c in communes if c.lower() == msg.lower()), None)
+    if commune is None:
+        return [t(lang, "bot_invalid"), t(lang, "bot_ask_commune", communes=_numbered(communes))]
+    s.data["commune"] = commune
+    return _ask_recipient(db, s)
+
+
+def _recipients(db: Session, s: BotSession) -> list[tuple[str, int | None]]:
+    """Choix proposés : (libellé, id du relais ou None pour l'action sociale)."""
+    lang = s.lang
+    choices: list[tuple[str, int | None]] = [(t(lang, "bot_recipient_action_sociale"), None)]
+    for a in public_relais(db, s.data["region"], s.data["commune"]):
+        where = f", {a.commune}" if a.commune else ""
+        choices.append((t(lang, "bot_recipient_relais", name=a.name, where=where), a.id))
+    return choices
+
+
+def _ask_recipient(db: Session, s: BotSession) -> list[str]:
+    choices = _recipients(db, s)
+    if len(choices) == 1:
+        # Pas de relais dans cette commune : inutile de poser la question.
+        s.data["assignee_id"] = None
+        s.state = "REPORT_DESC"
+        return [t(s.lang, "bot_ask_description")]
+    s.state = "REPORT_TO"
+    return [t(s.lang, "bot_ask_recipient", choices=_numbered([label for label, _ in choices]))]
+
+
+def _report_to(db: Session, channel: Channel, s: BotSession, msg: str) -> list[str]:
+    lang = s.lang
+    choices = _recipients(db, s)
+    picked = _pick(msg, choices)
+    if picked is None:
+        return [t(lang, "bot_invalid"), t(lang, "bot_ask_recipient", choices=_numbered([c for c, _ in choices]))]
+    s.data["assignee_id"] = picked[1]
     s.state = "REPORT_DESC"
     return [t(lang, "bot_ask_description")]
 
@@ -195,15 +271,26 @@ def _report_region(db: Session, channel: Channel, s: BotSession, msg: str) -> li
 def _report_desc(db: Session, channel: Channel, s: BotSession, msg: str) -> list[str]:
     lang = s.lang
     rtype: ReportType = s.data["type"]
+    sub: ReportSubtype = s.data["subtype"]
     region: str = s.data["region"]
+    assignee_id = s.data.get("assignee_id")
     try:
         report = create_report(
-            db, type_=rtype.value, region=region, description=msg, channel=channel, lang=lang
+            db,
+            type_=rtype.value,
+            subtype=sub.value,
+            region=region,
+            commune=s.data.get("commune"),
+            description=msg,
+            assignee_id=assignee_id,
+            target_role=None if assignee_id else ActorRole.ACTION_SOCIALE.value,
+            channel=channel,
+            lang=lang,
         )
     except ValidationError as e:
         return [t(lang, e.key, **e.params), t(lang, "bot_ask_description")]
     s.state, s.data = "MENU", {}
-    resources = find_resources(db, type_=rtype, region=region)
+    resources = find_resources(db, type_=rtype, subtype=sub, region=region)
     # Le code part dans son propre message : sur WhatsApp il reste isolable,
     # donc copiable et transférable sans le reste de la conversation.
     out = [t(lang, "bot_report_done"), t(lang, "bot_report_code", code=format_code(report.id))]
@@ -212,6 +299,9 @@ def _report_desc(db: Session, channel: Channel, s: BotSession, msg: str) -> list
     # sensible, et c'est ce qui reste sous les yeux de la personne.
     out[-1] += t(lang, "bot_back_hint") + t(lang, "bot_wipe_hint")
     return out
+
+
+# --------------------------------------------------------------------------- suivi / ressources
 
 
 def _track_code(db: Session, channel: Channel, s: BotSession, msg: str) -> list[str]:
@@ -277,7 +367,10 @@ def _res_region(db: Session, channel: Channel, s: BotSession, msg: str) -> list[
 _STATES = {
     "MENU": _menu,
     "REPORT_TYPE": _report_type,
+    "REPORT_SUBTYPE": _report_subtype,
     "REPORT_REGION": _report_region,
+    "REPORT_COMMUNE": _report_commune,
+    "REPORT_TO": _report_to,
     "REPORT_DESC": _report_desc,
     "RES_REGION": _res_region,
     "TRACK_CODE": _track_code,

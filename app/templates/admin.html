@@ -1,34 +1,25 @@
-<!doctype html>
-<html lang="fr">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="robots" content="noindex, nofollow">
-<title>Incidents — AlertSécurité</title>
-<link rel="stylesheet" href="/static/style.css">
-</head>
-<body>
-<header class="top">
-  <a class="brand" href="/admin">AlertSécurité · Espace partenaire</a>
+{% extends "base_admin.html" %}
+{% block page_title %}Signalements{% endblock %}
+{% block main_class %}wide{% endblock %}
+{% block header_action %}
+<nav class="stack-h">
+  <a class="btn small" href="/admin/acteurs">Comptes acteurs</a>
   <form method="post" action="/admin/logout"><button class="btn small">Déconnexion</button></form>
-</header>
+</nav>
+{% endblock %}
 
-<main class="wide">
-<h1>Incidents signalés</h1>
-
-{% if not can_decrypt %}
-<p class="banner">🔒 Descriptions chiffrées. Reconnectez-vous avec la clé privée pour les lire,
-ou exportez (<code>/admin/reports</code>) et déchiffrez hors ligne.</p>
-{% endif %}
+{% block content %}
+<h1>Tous les signalements</h1>
 
 <section class="tiles">
   <div class="tile"><span class="n">{{ stats.total }}</span><span>Total</span></div>
   {% for ty in types %}
-  <div class="tile"><span class="n">{{ stats.by_type.get(ty.value, 0) }}</span><span>{{ type_labels[ty] }}</span></div>
+  <div class="tile"><span class="n">{{ stats.by_type.get(ty.value, 0) }}</span><span>{{ t('type_' ~ ty.value) }}</span></div>
   {% endfor %}
   {% for ch, n in stats.by_channel.items() %}
   <div class="tile"><span class="n">{{ n }}</span><span>{{ ch }}</span></div>
   {% endfor %}
+  <div class="tile"><span class="n">{{ stats.actors }}</span><span>comptes actifs</span></div>
 </section>
 
 <section class="tiles">
@@ -42,7 +33,7 @@ ou exportez (<code>/admin/reports</code>) et déchiffrez hors ligne.</p>
     <label for="type">Type</label>
     <select id="type" name="type">
       <option value="">Tous</option>
-      {% for ty in types %}<option value="{{ ty.value }}" {% if ty.value == selected_type %}selected{% endif %}>{{ type_labels[ty] }}</option>{% endfor %}
+      {% for ty in types %}<option value="{{ ty.value }}" {% if ty.value == selected_type %}selected{% endif %}>{{ t('type_' ~ ty.value) }}</option>{% endfor %}
     </select>
   </div>
   <div>
@@ -62,12 +53,12 @@ ou exportez (<code>/admin/reports</code>) et déchiffrez hors ligne.</p>
   <button type="submit" class="btn">Filtrer</button>
 </form>
 
-<p class="muted">{{ rows | length }} incident(s) affiché(s).</p>
+<p class="muted">{{ rows | length }} signalement(s) affiché(s).</p>
 
 <div class="scroll">
 <table>
   <thead>
-    <tr><th>Date</th><th>Code</th><th>Type</th><th>Région</th><th>Canal</th><th>Description</th><th>Suivi</th></tr>
+    <tr><th>Date</th><th>Code</th><th>Type</th><th>Lieu</th><th>Canal</th><th>Chez qui</th><th>Récit</th><th>Suivi</th></tr>
   </thead>
   <tbody>
   {% for row in rows %}
@@ -75,13 +66,17 @@ ou exportez (<code>/admin/reports</code>) et déchiffrez hors ligne.</p>
     <tr>
       <td class="nowrap">{{ r.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
       <td class="nowrap"><code>{{ row.code }}</code></td>
-      <td><span class="pill t-{{ r.type.value }}">{{ type_labels[r.type] }}</span></td>
+      <td><span class="pill t-{{ r.type.value }}">{{ t('type_' ~ r.type.value) }}</span>
+        {% if r.subtype %}<br><span class="muted">{{ t('subtype_' ~ r.subtype.value) }}</span>{% endif %}</td>
       <td>{{ r.region }}{% if r.commune %}<br><span class="muted">{{ r.commune }}</span>{% endif %}</td>
       <td>{{ r.channel.value }}</td>
+      <td>{% if r.assignee %}{{ r.assignee.name }}<br><span class="muted">{{ role_labels[r.assignee.role] }}</span>
+          {% elif r.target_role %}<span class="muted">{{ role_labels[r.target_role] }}</span>{% endif %}</td>
       <td class="desc">
         {% if row.description is not none %}{{ row.description }}
-        {% elif row.decrypt_error %}<span class="error-inline">Erreur de déchiffrement</span>
-        {% else %}<span class="muted">🔒 chiffré</span>{% endif %}
+        {% elif row.legacy %}<span class="muted">🔒 ancien format — scripts/reencrypt.py</span>
+        {% else %}<span class="error-inline">Illisible</span>{% endif %}
+        {% if row.summary %}<br><strong>Reformulé :</strong> {{ row.summary }}{% endif %}
       </td>
       {# La personne qui a signalé lit ce statut et ce message avec son code. #}
       <td class="track">
@@ -100,11 +95,9 @@ ou exportez (<code>/admin/reports</code>) et déchiffrez hors ligne.</p>
       </td>
     </tr>
   {% else %}
-    <tr><td colspan="7" class="muted">Aucun incident.</td></tr>
+    <tr><td colspan="8" class="muted">Aucun signalement.</td></tr>
   {% endfor %}
   </tbody>
 </table>
 </div>
-</main>
-</body>
-</html>
+{% endblock %}

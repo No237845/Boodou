@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% set lang_path = "/signaler" %}
+{% block title %}{{ t('report_title') }} — {{ t('app_name') }}{% endblock %}
+{% block content %}
+<h1>{{ t('report_title') }}</h1>
+<p class="muted">{{ t('report_step', n=2, total=2) }} ·
+  {{ t('subtype_' ~ subtype.value) }} · {{ form.commune }} ({{ form.region }})
+  · <a href="/{{ lang }}/signaler">{{ t('report_change') }}</a></p>
+
+{% if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
+
+<form method="post" action="/{{ lang }}/signaler/envoyer" autocomplete="off">
+  <input type="hidden" name="subtype" value="{{ form.subtype }}">
+  <input type="hidden" name="region" value="{{ form.region }}">
+  <input type="hidden" name="commune" value="{{ form.commune }}">
+
+  <fieldset>
+    <legend>{{ t('report_recipient') }}</legend>
+    <p class="hint">{{ t('report_recipient_hint') }}</p>
+    {% for a in relais %}
+      <label class="choice">
+        <input type="radio" name="recipient" value="relais:{{ a.id }}" {% if form.recipient == 'relais:' ~ a.id %}checked{% endif %} required>
+        {{ a.name }}
+        <small class="muted">— {{ t('recipient_relais') }}{% if a.commune %}, {{ a.commune }}{% endif %}{% if a.organisation %} · {{ a.organisation }}{% endif %}{% if a.phone %} · {{ a.phone }}{% endif %}</small>
+      </label>
+    {% else %}
+      <p class="muted">{{ t('report_no_relais') }}</p>
+    {% endfor %}
+    <label class="choice">
+      <input type="radio" name="recipient" value="{{ action_sociale }}"
+             {% if form.recipient == action_sociale or not relais %}checked{% endif %} required>
+      {{ t('recipient_action_sociale') }}
+      <small class="muted">— {{ t('recipient_action_sociale_hint') }}</small>
+    </label>
+  </fieldset>
+
+  <label for="description">{{ t('report_description') }}</label>
+  <textarea id="description" name="description" rows="6" maxlength="2000" required>{{ form.description or '' }}</textarea>
+  <p class="hint">🔒 {{ t('report_description_hint') }}</p>
+
+  <button type="submit" class="btn big primary">{{ t('report_submit') }}</button>
+</form>
+{% endblock %}

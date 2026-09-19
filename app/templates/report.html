@@ -4,19 +4,24 @@
 {% block content %}
 <h1>{{ t('report_title') }}</h1>
 <p class="banner">{{ t('report_intro') }}</p>
+<p class="muted">{{ t('report_step', n=1, total=2) }}</p>
 
 {% if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
 
 <form method="post" action="/{{ lang }}/signaler" autocomplete="off">
+  {# Un seul groupe de boutons radio pour tous les sous-types : le type
+     (VBG / sécurité) s'en déduit, l'usager n'a qu'un choix à faire. #}
+  {% for ty, subs in subtypes.items() %}
   <fieldset>
-    <legend>{{ t('report_type') }}</legend>
-    {% for ty in types %}
+    <legend>{{ t('type_' ~ ty.value) }}</legend>
+    {% for s in subs %}
       <label class="choice">
-        <input type="radio" name="type" value="{{ ty.value }}" {% if form.type == ty.value %}checked{% endif %} required>
-        {{ t('type_' ~ ty.value) }}
+        <input type="radio" name="subtype" value="{{ s.value }}" {% if form.subtype == s.value %}checked{% endif %} required>
+        {{ t('subtype_' ~ s.value) }}
       </label>
     {% endfor %}
   </fieldset>
+  {% endfor %}
 
   <label for="region">{{ t('report_region') }}</label>
   <select id="region" name="region" required>
@@ -27,16 +32,16 @@
   </select>
 
   <label for="commune">{{ t('report_commune') }}</label>
-  <input id="commune" name="commune" list="communes" maxlength="64" value="{{ form.commune or '' }}">
-  <datalist id="communes">
-    {% for r in regions %}{% for c in r.communes %}<option value="{{ c }}">{% endfor %}{% endfor %}
-  </datalist>
+  <select id="commune" name="commune" required>
+    <option value="">—</option>
+    {% for r in regions %}
+    <optgroup label="{{ r.name }}">
+      {% for c in r.communes %}<option value="{{ c }}" {% if form.commune == c %}selected{% endif %}>{{ c }}</option>{% endfor %}
+    </optgroup>
+    {% endfor %}
+  </select>
   <p class="hint">{{ t('report_commune_hint') }}</p>
 
-  <label for="description">{{ t('report_description') }}</label>
-  <textarea id="description" name="description" rows="6" maxlength="2000" required>{{ form.description or '' }}</textarea>
-  <p class="hint">🔒 {{ t('report_description_hint') }}</p>
-
-  <button type="submit" class="btn big primary">{{ t('report_submit') }}</button>
+  <button type="submit" class="btn big primary">{{ t('report_next') }}</button>
 </form>
 {% endblock %}

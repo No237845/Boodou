@@ -1,0 +1,19 @@
+{% extends "base_espace.html" %}
+{% block page_title %}Connexion{% endblock %}
+{% block main_class %}{% endblock %}
+{% block content %}
+<h1>Connexion</h1>
+<p class="muted">Réservé aux relais communautaires, points focaux VBG, agents de l'action sociale et gestionnaires de cas.
+Les comptes sont créés par l'administrateur.</p>
+{% if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
+
+<form method="post" action="/espace/login" autocomplete="off">
+  <label for="username">Identifiant</label>
+  <input id="username" name="username" type="text" required autofocus autocapitalize="none">
+
+  <label for="password">Mot de passe</label>
+  <input id="password" name="password" type="password" required>
+
+  <button type="submit" class="btn big primary">Se connecter</button>
+</form>
+{% endblock %}

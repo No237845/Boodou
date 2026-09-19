@@ -1,0 +1,20 @@
+{# Gabarit de l'espace acteurs (relais, point focal, action sociale, gestionnaire).
+   Français uniquement, comme l'espace admin : ce n'est pas une page publique.
+   Contexte : actor (peut être absent sur la page de connexion), role_labels. #}
+{% extends "_layout.html" %}
+
+{% block title %}{% block page_title %}Espace acteurs{% endblock %} — Boodou{% endblock %}
+
+{% block body %}
+<header class="top">
+  <a class="brand" href="/espace">Boodou · Espace acteurs</a>
+  {% if actor %}
+  <span class="who">{{ actor.name }} · {{ role_labels[actor.role] }} · {{ actor.commune or actor.region }}</span>
+  <form method="post" action="/espace/logout"><button class="btn small">Déconnexion</button></form>
+  {% endif %}
+</header>
+
+<main class="{% block main_class %}wide{% endblock %}">
+{% block content %}{% endblock %}
+</main>
+{% endblock %}

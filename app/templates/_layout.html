@@ -1,0 +1,16 @@
+{# Squelette HTML commun au site public (base.html) et à l'espace partenaire
+   (base_admin.html). Rien ici ne dépend de la traduction : les deux côtés n'ont
+   pas le même contexte de rendu (l'admin est en français uniquement). #}
+<!doctype html>
+<html lang="{% block html_lang %}fr{% endblock %}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>{% block title %}Boodou{% endblock %}</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+{% block body %}{% endblock %}
+</body>
+</html>

@@ -1,18 +1,17 @@
-<!doctype html>
-<html lang="{{ lang }}">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="robots" content="noindex, nofollow">
-<title>{% block title %}{{ t('app_name') }}{% endblock %}</title>
-<link rel="stylesheet" href="/static/style.css">
-</head>
-<body>
+{# Gabarit du site public. Contexte fourni par web.render() : lang, t, languages. #}
+{% extends "_layout.html" %}
+
+{% block html_lang %}{{ lang }}{% endblock %}
+{% block title %}{{ t('app_name') }}{% endblock %}
+
+{% block body %}
 <header class="top">
   <a class="brand" href="/{{ lang }}">{{ t('app_name') }}</a>
   <a class="exit" href="/quitter" title="{{ t('quick_exit_hint') }}">✕ {{ t('quick_exit') }}</a>
 </header>
 
+{# lang_path : chaque page le définit pour qu'un changement de langue reste sur
+   la même page au lieu de renvoyer à l'accueil. #}
 <nav class="langs">
   {% for code, name in languages %}
     <a href="/{{ code }}{{ lang_path | default('') }}" {% if code == lang %}class="on"{% endif %}>{{ name }}</a>
@@ -27,5 +26,4 @@
   <p>{{ t('footer') }}</p>
   <p><a href="/{{ lang }}">{{ t('nav_home') }}</a> · <a href="/{{ lang }}/ressources">{{ t('nav_resources') }}</a> · <a href="/{{ lang }}/suivi">{{ t('nav_track') }}</a></p>
 </footer>
-</body>
-</html>
+{% endblock %}

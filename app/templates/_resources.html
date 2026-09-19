@@ -14,10 +14,12 @@
         {% if r.hours %} · {{ r.hours }}{% endif %}
       </span>
       {% if r.notes %}<p>{{ r.notes }}</p>{% endif %}
+      {# Pas de mention « à confirmer » : `verified` ne sert plus qu'au tri, en interne.
+         Sans numéro connu, la fiche reste utile — `notes` dit comment joindre la
+         structure ou s'y rendre — mais elle passe derrière les fiches appelables. #}
       {% if r.phone %}
         <a class="btn call" href="tel:{{ r.phone }}">📞 {{ t('resources_call') }} {{ r.phone }}</a>
       {% endif %}
-      {% if not r.verified %}<span class="tag">{{ t('resources_unverified') }}</span>{% endif %}
     </li>
     {% endfor %}
   </ul>

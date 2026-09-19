@@ -1,0 +1,95 @@
+{% extends "base_admin.html" %}
+{% block page_title %}Comptes acteurs{% endblock %}
+{% block main_class %}wide{% endblock %}
+{% block header_action %}
+<nav class="stack-h">
+  <a class="btn small" href="/admin">Signalements</a>
+  <form method="post" action="/admin/logout"><button class="btn small">Déconnexion</button></form>
+</nav>
+{% endblock %}
+
+{% block content %}
+<h1>Comptes acteurs</h1>
+<p class="muted">Relais communautaires, points focaux VBG, agents de l'action sociale, gestionnaires de cas.
+Ils se connectent sur <a href="/espace">/espace</a> ou dans l'application mobile avec ces identifiants.</p>
+
+{% if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
+{% if info %}<p class="banner">{{ info }}</p>{% endif %}
+
+<div class="cols">
+<div>
+  <h2>Nouveau compte</h2>
+  <form method="post" action="/admin/acteurs" autocomplete="off">
+    <label for="role">Rôle</label>
+    <select id="role" name="role" required>
+      <option value="">—</option>
+      {% for r in roles %}<option value="{{ r.value }}" {% if form.role == r.value %}selected{% endif %}>{{ role_labels[r] }}</option>{% endfor %}
+    </select>
+
+    <label for="name">Nom affiché</label>
+    <input id="name" name="name" maxlength="128" required value="{{ form.name or '' }}" placeholder="Ex. : Awa (relais de Kaya)">
+    <p class="hint">Pour un relais, c'est ce que l'usager voit quand il choisit sa personne ressource.</p>
+
+    <label for="organisation">Structure (facultatif)</label>
+    <input id="organisation" name="organisation" maxlength="128" value="{{ form.organisation or '' }}" placeholder="Action sociale de Kaya, HCR, UNICEF…">
+
+    <label for="region">Région</label>
+    <select id="region" name="region" required>
+      <option value="">—</option>
+      {% for r in regions_full %}<option value="{{ r.name }}" {% if form.region == r.name %}selected{% endif %}>{{ r.name }}</option>{% endfor %}
+    </select>
+
+    <label for="commune">Commune (obligatoire pour un relais, sinon facultatif)</label>
+    <select id="commune" name="commune">
+      <option value="">— toute la région —</option>
+      {% for r in regions_full %}
+      <optgroup label="{{ r.name }}">
+        {% for c in r.communes %}<option value="{{ c }}" {% if form.commune == c %}selected{% endif %}>{{ c }}</option>{% endfor %}
+      </optgroup>
+      {% endfor %}
+    </select>
+
+    <label for="phone">Téléphone (facultatif, visible par l'usager pour un relais)</label>
+    <input id="phone" name="phone" maxlength="32" value="{{ form.phone or '' }}">
+
+    <label for="username">Identifiant de connexion</label>
+    <input id="username" name="username" maxlength="64" required autocapitalize="none" value="{{ form.username or '' }}">
+
+    <label for="password">Mot de passe (8 caractères minimum)</label>
+    <input id="password" name="password" type="password" minlength="8" required>
+
+    <button type="submit" class="btn primary">Créer le compte</button>
+  </form>
+</div>
+
+<div>
+  <h2>{{ actors | length }} compte(s)</h2>
+  <div class="scroll">
+  <table>
+    <thead><tr><th>Nom</th><th>Rôle</th><th>Zone</th><th>Identifiant</th><th>Actions</th></tr></thead>
+    <tbody>
+    {% for a in actors %}
+      <tr class="{% if not a.active %}inactive{% endif %}">
+        <td>{{ a.name }}{% if a.organisation %}<br><span class="muted">{{ a.organisation }}</span>{% endif %}</td>
+        <td>{{ role_labels[a.role] }}</td>
+        <td>{{ a.region }}{% if a.commune %}<br><span class="muted">{{ a.commune }}</span>{% endif %}</td>
+        <td><code>{{ a.username }}</code>{% if not a.active %}<br><span class="error-inline">désactivé</span>{% endif %}</td>
+        <td class="track">
+          <form method="post" action="/admin/acteurs/{{ a.id }}/actif">
+            <button class="btn small">{% if a.active %}Désactiver{% else %}Réactiver{% endif %}</button>
+          </form>
+          <form method="post" action="/admin/acteurs/{{ a.id }}/mot-de-passe" autocomplete="off">
+            <input name="password" type="password" minlength="8" placeholder="Nouveau mot de passe" required>
+            <button class="btn small">Changer</button>
+          </form>
+        </td>
+      </tr>
+    {% else %}
+      <tr><td colspan="5" class="muted">Aucun compte. Créez au moins un point focal VBG et un agent de l'action sociale par région.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+</div>
+</div>
+{% endblock %}

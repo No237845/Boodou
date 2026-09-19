@@ -2,13 +2,14 @@ import logging
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
 from . import migrations
 from .config import BASE_DIR, settings
 from .db import Base, SessionLocal, engine
-from .routers import admin, api, web, whatsapp
+from .routers import admin, api, espace, sms, web, whatsapp
 from .seed import seed_resources
 
 # Aucun log d'accès : on ne veut ni IP, ni user-agent, ni URL visitée dans les journaux.
@@ -22,15 +23,27 @@ async def lifespan(_: FastAPI):
     migrations.run(engine)
     with SessionLocal() as db:
         seed_resources(db)
-    if not settings.report_public_key:
+    if not settings.report_secret_key:
         logging.getLogger("app").warning(
-            "REPORT_PUBLIC_KEY absente : les signalements échoueront. Voir README."
+            "REPORT_SECRET_KEY absente : les signalements échoueront. Voir README."
         )
     yield
 
 
 app = FastAPI(title=settings.app_name, lifespan=lifespan, docs_url="/api/docs", redoc_url=None)
 app.mount("/static", StaticFiles(directory=BASE_DIR / "static"), name="static")
+
+# CORS pour l'API appelée depuis un navigateur (app mobile en mode web).
+# Sans cookies : les sessions cookie (/admin, /espace) restent donc hors de
+# portée d'un site tiers, seuls les jetons Bearer explicites passent.
+if settings.cors_origin_list:
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=settings.cors_origin_list,
+        allow_credentials=False,
+        allow_methods=["GET", "POST", "OPTIONS"],
+        allow_headers=["Authorization", "Content-Type"],
+    )
 
 
 @app.middleware("http")
@@ -65,6 +78,8 @@ def healthz():
 
 app.include_router(api.router)
 app.include_router(admin.router)
+app.include_router(espace.router)
 app.include_router(whatsapp.router)
+app.include_router(sms.router)
 app.include_router(web.router)  # en dernier : /{lang} est un attrape-tout
 #& ".\safety_venv\Scripts\uvicorn.exe" app.main:app --reload --no-access-log --port 8000

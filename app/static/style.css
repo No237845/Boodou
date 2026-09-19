@@ -1,10 +1,16 @@
 /* Feuille volontairement minimale (~2 Ko) : pas de police web, pas d'image, pas de JS. */
 :root {
   --bg: #fafaf7; --fg: #1c1c1c; --muted: #5f5f5f; --line: #ddd;
-  --primary: #0b5d3b; --primary-fg: #fff; --danger: #b3261e; --soft: #eef4f0;
+  --primary: #0b5d3b; --primary-fg: #fff; --soft: #eef4f0;
+  /* --danger : fond de bouton (texte blanc dessus) et texte sur les fonds clairs
+     figés de .error. Il ne change pas entre les thèmes, sinon "Quitter vite"
+     perdrait son contraste. --danger-fg : rouge posé sur le fond de la page,
+     éclairci en sombre où le rouge profond devient illisible. */
+  --danger: #b3261e; --danger-fg: #b3261e;
 }
 @media (prefers-color-scheme: dark) {
-  :root { --bg: #141414; --fg: #eee; --muted: #aaa; --line: #333; --soft: #1e2a24; --primary: #2e9a68; }
+  :root { --bg: #141414; --fg: #eee; --muted: #aaa; --line: #333; --soft: #1e2a24;
+          --primary: #2e9a68; --danger-fg: #f2685e; }
 }
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--bg); color: var(--fg); font: 17px/1.45 system-ui, sans-serif; }
@@ -39,12 +45,23 @@ fieldset { border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px;
 legend { font-weight: 600; padding: 0 6px; }
 .choice { display: block; font-weight: 400; padding: 8px 0; margin: 0; }
 .choice input { margin-right: 8px; transform: scale(1.3); }
-input[type=text], input:not([type]), select, textarea { width: 100%; padding: 10px; font: inherit; border: 1px solid var(--line);
+/* Tous les champs saisissables, plutôt qu'une liste de `type` à maintenir :
+   `type=password` (connexion partenaire) échappait à la règle et s'affichait
+   au style natif du navigateur, à côté d'un textarea pleine largeur.
+   :not() chaîné et non :not(a, b) — la forme à liste demande Chrome 88+, et
+   sur un vieil Android la règle entière serait ignorée. */
+input:not([type=radio]):not([type=checkbox]):not([type=hidden]):not([type=submit]):not([type=button]),
+select, textarea { width: 100%; padding: 10px; font: inherit; border: 1px solid var(--line);
        border-radius: 6px; background: var(--bg); color: var(--fg); }
 form .btn { margin-top: 16px; }
+
+/* Barre de filtres. Site public : label + select sur une ligne. Espace
+   partenaire : chaque couple label/select est enveloppé dans un div. */
 .filter { display: flex; flex-wrap: wrap; gap: 8px; align-items: end; }
-.filter label { margin: 0; flex-basis: 100%; }
+.filter > label { margin: 0; flex-basis: 100%; }
 .filter select { flex: 1; width: auto; }
+.filter div { flex: 1 1 180px; }
+.filter div label { margin: 0 0 4px; }
 
 .emergency { background: #fff4e5; border: 1px solid #f0c78a; border-radius: 8px; padding: 12px; margin: 20px 0; color: #1c1c1c; }
 .emergency h2 { margin: 0 0 6px; }
@@ -70,7 +87,6 @@ form .btn { margin-top: 16px; }
 .card strong { display: block; }
 .card .meta { color: var(--muted); font-size: .85rem; }
 .card p { font-size: .95rem; }
-.tag { display: inline-block; font-size: .75rem; color: var(--muted); border: 1px dashed var(--line); padding: 1px 6px; border-radius: 4px; margin-top: 6px; }
 
 /* --- Espace partenaire --- */
 main.wide { max-width: 1100px; }
@@ -80,8 +96,6 @@ main.wide { max-width: 1100px; }
 .tile { flex: 1 1 120px; border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; background: var(--soft); }
 .tile .n { display: block; font-size: 1.6rem; font-weight: 700; }
 .tile span:last-child { font-size: .85rem; color: var(--muted); }
-.filter div { flex: 1 1 180px; }
-.filter div label { margin: 0 0 4px; }
 .scroll { overflow-x: auto; }
 table { border-collapse: collapse; width: 100%; font-size: .95rem; }
 th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
@@ -89,15 +103,31 @@ th { font-size: .8rem; text-transform: uppercase; color: var(--muted); }
 td.nowrap { white-space: nowrap; }
 td.desc { min-width: 280px; white-space: pre-wrap; }
 .pill { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: .8rem; font-weight: 600; white-space: nowrap; color: #1c1c1c; }
-.t-VIOLENCE { background: #fde2c8; } .t-MENACE { background: #fff1b8; } .t-GBV { background: #f6d5e6; } .t-TERRORISME { background: #f8c9c4; }
-.tile.s-RECU { border-left: 4px solid #d98324; } .tile.s-TRANSMIS { border-left: 4px solid var(--primary); }
-.tile.s-CLOTURE { border-left: 4px solid var(--muted); }
+.t-GBV { background: #f6d5e6; } .t-SECURITE { background: #fde2c8; }
+.pill.s-RECU { background: #ffe3c2; } .pill.s-TRANSMIS { background: #fff1b8; }
+.pill.s-PRIS_EN_CHARGE { background: #d3ecdd; } .pill.s-REGLE { background: #e4e4e4; }
+.tile.s-RECU { border-left: 4px solid #d98324; } .tile.s-TRANSMIS { border-left: 4px solid #c9a227; }
+.tile.s-PRIS_EN_CHARGE { border-left: 4px solid var(--primary); } .tile.s-REGLE { border-left: 4px solid var(--muted); }
+.tile .n.small-n { font-size: 1.05rem; }
+
+/* --- Espace acteurs --- */
+.who { color: var(--muted); font-size: .85rem; margin-left: auto; margin-right: 12px; }
+.stack-h { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.stack-h form { margin: 0; }
+.filter .stack-h { flex: 1; }
+.cols { display: grid; grid-template-columns: 1fr; gap: 24px; }
+@media (min-width: 900px) { .cols { grid-template-columns: 3fr 2fr; } }
+.desc-box { white-space: pre-wrap; border: 1px solid var(--line); border-radius: 8px; padding: 12px; background: var(--soft); }
+.timeline { list-style: none; padding: 0; margin: 0; }
+.timeline li { padding: 6px 0; border-bottom: 1px solid var(--line); font-size: .95rem; }
+tr.inactive td { opacity: .55; }
+.choice small { display: block; margin-left: 28px; }
 td.track { min-width: 240px; }
 td.track form { display: flex; flex-direction: column; gap: 6px; }
 td.track select, td.track textarea { width: 100%; padding: 6px; font: inherit; font-size: .85rem;
        border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--fg); }
 td.track .btn { margin-top: 0; }
-.error-inline { color: var(--danger); font-weight: 600; }
+.error-inline { color: var(--danger-fg); font-weight: 600; }
 code { background: var(--soft); padding: 1px 5px; border-radius: 4px; }
 
 footer { text-align: center; color: var(--muted); font-size: .85rem; padding: 16px; border-top: 1px solid var(--line); }
