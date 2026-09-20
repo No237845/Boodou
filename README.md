@@ -1,4 +1,4 @@
-# AlertSécurité — Safety, Reporting & Protection (Burkina Faso)
+# Boodou — Safety, Reporting & Protection (Burkina Faso)
 
 POC hackathon OSF & Andela : signalement anonyme d'incidents (VBG, violences, menaces, terrorisme), routage vers les acteurs de terrain (relais communautaires, points focaux VBG, action sociale, gestionnaires de cas), accès aux hotlines et ressources de protection. Français / Mooré / Dioula / English. Web faible bande passante, WhatsApp, SMS, et une API pour l'application mobile.
 
