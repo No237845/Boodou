@@ -26,9 +26,9 @@ export default function Resources() {
   const load = () => {
     setError(null);
     setRows(null);
-    api.getResources({ type, category, region: region || undefined }).then(setRows).catch((e) => setError(errorMessage(e, lang)));
+    api.getResources({ type, category, region: region || undefined, lang: lang ?? undefined }).then(setRows).catch((e) => setError(errorMessage(e, lang)));
   };
-  useEffect(load, [type, category, region]);
+  useEffect(load, [type, category, region, lang]);
 
   return (
     <Screen>

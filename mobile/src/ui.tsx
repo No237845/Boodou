@@ -7,6 +7,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { useRTL } from "./i18n";
 import { mono, radius, shadow, space, type, useTheme } from "./theme";
 
 export type IconName = React.ComponentProps<typeof Ionicons>["name"];
@@ -36,7 +37,8 @@ export function Screen({ children, scroll = true, footer, padded = true }: { chi
 const T = (style: TextStyle, colorKey: "text" | "textSecondary" = "text") =>
   function Typo({ children, style: extra, color }: { children: React.ReactNode; style?: TextStyle; color?: string }) {
     const th = useTheme();
-    return <Text style={[style, { color: color ?? th[colorKey] }, extra]}>{children}</Text>;
+    const rtl = useRTL();
+    return <Text style={[style, { color: color ?? th[colorKey] }, rtl && s.rtlText, extra]}>{children}</Text>;
   };
 
 export const H1 = T({ ...type.h1, marginTop: space.sm, marginBottom: space.sm });
@@ -279,6 +281,7 @@ const s = StyleSheet.create({
   footer: { padding: space.md, borderTopWidth: StyleSheet.hairlineWidth },
   btn: { minHeight: 48, paddingVertical: 12, paddingHorizontal: space.md, borderRadius: radius.md, borderWidth: 1, alignItems: "center", justifyContent: "center", marginTop: space.sm + 2 },
   btnSmall: { minHeight: 36, paddingVertical: 6, paddingHorizontal: 12, marginTop: 0 },
+  rtlText: { writingDirection: "rtl", textAlign: "right" },
   action: { flexDirection: "row", alignItems: "center", gap: space.md, padding: space.md, borderRadius: radius.lg, borderWidth: 1, marginTop: space.sm + 2 },
   choice: { flexDirection: "row", alignItems: "center", gap: space.sm + 4, paddingVertical: 12, paddingHorizontal: space.md, borderWidth: 1, borderRadius: radius.md, marginTop: space.sm },
   inputWrap: { flexDirection: "row", alignItems: "flex-start", borderWidth: 1, borderRadius: radius.md },

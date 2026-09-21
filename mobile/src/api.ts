@@ -58,11 +58,12 @@ export const getTypes = (lang: string) => call<TypeInfo[]>(`/api/types?lang=${la
 export const getRegions = () => call<Region[]>("/api/regions");
 export const getRelais = (region: string, commune: string) =>
   call<Relais[]>(`/api/relais?region=${encodeURIComponent(region)}&commune=${encodeURIComponent(commune)}`);
-export const getResources = (params: { type?: ReportType; subtype?: string; region?: string; category?: string }) => {
+/** `lang` : horaires et notes rendus dans cette langue quand la traduction est prête, sinon en français. */
+export const getResources = (params: { type?: ReportType; subtype?: string; region?: string; category?: string; lang?: string }) => {
   const q = Object.entries(params).filter(([, v]) => v).map(([k, v]) => `${k}=${encodeURIComponent(v!)}`).join("&");
   return call<Resource[]>(`/api/resources${q ? "?" + q : ""}`);
 };
-export const track = (code: string) => call<Track>(`/api/reports/${encodeURIComponent(code)}`);
+export const track = (code: string, lang: string) => call<Track>(`/api/reports/${encodeURIComponent(code)}?lang=${lang}`);
 export const getFeatures = () => call<{ speech: boolean }>("/api/features");
 
 /** Envoie un enregistrement (uri local) et rend le texte transcrit. L'audio n'est pas conservé côté serveur.

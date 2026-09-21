@@ -8,6 +8,8 @@ export const light = {
   urgent: "#b3261e", urgentLight: "#fde8e6",
   success: "#0b5d3b", successLight: "#eef4f0",
   warning: "#8a5a00", warningLight: "#fff4e5",
+  // Ocre du logo : second accent, réservé à l'encadré urgence (jamais sur une action).
+  accent: "#b8742a", accentLight: "#fbf1e4",
   text: "#1c1c1c", textSecondary: "#5f5f5f", textDisabled: "#9a9a9a",
   bg: "#fafaf7", bgSecondary: "#f1f1ee", surface: "#ffffff", border: "#dddddd", disabled: "#e6e6e6",
 };
@@ -16,6 +18,7 @@ export const dark: typeof light = {
   urgent: "#f2685e", urgentLight: "#3a1f1d",
   success: "#2e9a68", successLight: "#1e2a24",
   warning: "#e0a34a", warningLight: "#3a2c14",
+  accent: "#d9944a", accentLight: "#2a2117",
   text: "#eeeeee", textSecondary: "#aaaaaa", textDisabled: "#666666",
   bg: "#141414", bgSecondary: "#1b1b1b", surface: "#1e1e1e", border: "#333333", disabled: "#2c2c2c",
 };

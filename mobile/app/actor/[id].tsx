@@ -8,7 +8,6 @@ import { MAX_DESCRIPTION, NOTE_MAX } from "@/config";
 import { errorMessage } from "@/errors";
 import { useI18n } from "@/i18n";
 import { useSession } from "@/session";
-import { S } from "@/strings";
 import { SuggestBlock } from "@/suggestion";
 import { mono, radius, roleIcon, space, statusColor, statusIcon, subtypeIcon, type, useTheme } from "@/theme";
 import { Banner, Button, Card, Choice, Field, IconName, Loading, Muted, Pill, Screen, SectionTitle } from "@/ui";
@@ -68,7 +67,7 @@ export default function ReportDetail() {
       setStatus(r.status);
       setPartnerNote(r.partner_note ?? "");
       setTargets([
-        ...actor.can_forward_to.map<Target>((role) => ({ key: "role:" + role, label: `${S.actor.anyone} ${S.roles[role]}`, sub: actor.region, icon: roleIcon[role] as IconName, to_role: role })),
+        ...actor.can_forward_to.map<Target>((role) => ({ key: "role:" + role, label: `${t("actor_anyone")} ${t("role_" + role)}`, sub: actor.region, icon: roleIcon[role] as IconName, to_role: role })),
         ...people.map<Target>((p) => ({ key: "actor:" + p.id, label: p.name, sub: [p.organisation, p.commune].filter(Boolean).join(" · "), icon: "person", to_actor_id: p.id })),
       ]);
     } catch (e) {
@@ -83,16 +82,16 @@ export default function ReportDetail() {
   // Un relais / point focal qui a déjà transmis n'a plus rien à faire : on ne
   // lui remontre pas le formulaire, il croirait devoir recommencer.
   const alreadyForwarded = mustSummarize && !!report?.events.some((e) => e.kind === "FORWARDED" && e.by_id === actor?.id);
-  const forwardedTo = report ? report.assignee ?? (report.target_role ? S.roles[report.target_role] : "—") : "";
+  const forwardedTo = report ? report.assignee ?? (report.target_role ? t("role_" + report.target_role) : "—") : "";
 
   const doForward = async () => {
-    if (!to) return setError(S.actor.pickRecipient);
-    if (mustSummarize && !summary.trim()) return setError(S.actor.summaryMissing);
+    if (!to) return setError(t("actor_pick_recipient"));
+    if (mustSummarize && !summary.trim()) return setError(t("actor_summary_missing"));
     setBusy("forward");
     setError(null);
     try {
       await api.forward(token, id!, { to_actor_id: to.to_actor_id, to_role: to.to_role, summary: summary.trim() || undefined, note: note.trim() || undefined });
-      setInfo(S.actor.forwarded);
+      setInfo(t("actor_forwarded"));
       router.back();
     } catch (e) {
       setError(errorMessage(e, "fr"));
@@ -102,12 +101,12 @@ export default function ReportDetail() {
   };
 
   const doSummary = async () => {
-    if (!summary.trim()) return setError(S.actor.summaryMissing);
+    if (!summary.trim()) return setError(t("actor_summary_missing"));
     setBusy("summary");
     setError(null);
     try {
       await api.updateSummary(token, id!, summary.trim());
-      setInfo(S.actor.summarySaved);
+      setInfo(t("actor_summary_saved"));
       await load();
     } catch (e) {
       setError(errorMessage(e, "fr"));
@@ -121,7 +120,7 @@ export default function ReportDetail() {
     setError(null);
     try {
       await api.setStatus(token, id!, { status, note: partnerNote });
-      setInfo(S.actor.saved);
+      setInfo(t("actor_saved"));
       await load();
     } catch (e) {
       setError(errorMessage(e, "fr"));
@@ -143,7 +142,7 @@ export default function ReportDetail() {
           <Card accent={colors[report.status]}>
             <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: space.sm, flexWrap: "wrap" }}>
               <Text style={{ fontFamily: mono, fontSize: 19, fontWeight: "700", color: th.text }}>{report.code}</Text>
-              <Pill icon={statusIcon[report.status] as IconName} label={S.statuses[report.status]} color={colors[report.status]} />
+              <Pill icon={statusIcon[report.status] as IconName} label={t("status_" + report.status)} color={colors[report.status]} />
             </View>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: space.xs }}>
               <Ionicons name={((report.subtype && subtypeIcon[report.subtype]) || "alert-circle") as IconName} size={18} color={th.primary} />
@@ -153,8 +152,8 @@ export default function ReportDetail() {
             </View>
             {[
               ["location-outline", `${report.commune ?? "—"} (${report.region})`],
-              ["time-outline", `${when(report.created_at)} · ${S.actor.receivedVia} ${report.channel}`],
-              ["person-outline", `${S.actor.with} : ${report.assignee ?? (report.target_role ? `${S.roles[report.target_role]} (${S.actor.unassigned})` : "—")}`],
+              ["time-outline", `${when(report.created_at)} · ${t("actor_received_via")} ${report.channel}`],
+              ["person-outline", `${t("actor_with")} : ${report.assignee ?? (report.target_role ? `${t("role_" + report.target_role)} (${t("actor_unassigned")})` : "—")}`],
             ].map(([icon, label]) => (
               <View key={label} style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
                 <Ionicons name={icon as IconName} size={14} color={th.textSecondary} />
@@ -163,20 +162,20 @@ export default function ReportDetail() {
             ))}
           </Card>
 
-          <SectionTitle icon="chatbox-ellipses-outline">{S.actor.story}</SectionTitle>
-          {report.description ? <Quote>{report.description}</Quote> : <Banner kind="warn">{report.legacy ? S.actor.legacy : S.actor.unreadable}</Banner>}
+          <SectionTitle icon="chatbox-ellipses-outline">{t("actor_story")}</SectionTitle>
+          {report.description ? <Quote>{report.description}</Quote> : <Banner kind="warn">{report.legacy ? t("actor_legacy") : t("actor_unreadable")}</Banner>}
 
           {report.summary ? (
             <>
-              <SectionTitle icon="create-outline">{S.actor.summary}</SectionTitle>
-              <Muted>{S.actor.by} {report.summary_by ?? "?"}{report.summary_at ? `, ${when(report.summary_at)}` : ""}</Muted>
+              <SectionTitle icon="create-outline">{t("actor_summary")}</SectionTitle>
+              <Muted>{t("actor_by")} {report.summary_by ?? "?"}{report.summary_at ? `, ${when(report.summary_at)}` : ""}</Muted>
               <Quote>{report.summary}</Quote>
             </>
           ) : null}
 
           {report.partner_note ? <Banner kind="success" title={t("track_partner_note")}>{report.partner_note}</Banner> : null}
 
-          <SectionTitle icon="git-commit-outline">{S.actor.history}</SectionTitle>
+          <SectionTitle icon="git-commit-outline">{t("actor_history")}</SectionTitle>
           {report.events.map((e, i) => {
             const icon: IconName = e.kind === "CREATED" ? "mail-outline" : e.kind === "FORWARDED" ? "arrow-redo-outline" : (statusIcon[e.status ?? "RECU"] as IconName);
             const color = e.kind === "STATUS" && e.status ? colors[e.status] : th.primary;
@@ -187,10 +186,10 @@ export default function ReportDetail() {
                   <Text style={[type.caption, { color: th.textSecondary }]}>{when(e.at)}</Text>
                   <Text style={[type.bodySm, { color: th.text }]}>
                     {e.kind === "CREATED"
-                      ? `${S.actor.filed} ${S.actor.by} ${e.by ?? S.actor.anonymous}, ${S.actor.addressedTo} ${e.to ?? (e.to_role ? S.roles[e.to_role] : "—")}.`
+                      ? `${t("actor_filed")} ${t("actor_by")} ${e.by ?? t("actor_anonymous")}, ${t("actor_addressed_to")} ${e.to ?? (e.to_role ? t("role_" + e.to_role) : "—")}.`
                       : e.kind === "FORWARDED"
-                        ? `${e.by ?? "?"} ${S.actor.forwardedTo} ${e.to ?? (e.to_role ? S.roles[e.to_role] : "—")}.${e.note ? ` « ${e.note} »` : ""}`
-                        : `${e.by ?? "Admin"} → ${e.status ? S.statuses[e.status] : ""}.`}
+                        ? `${e.by ?? "?"} ${t("actor_forwarded_to")} ${e.to ?? (e.to_role ? t("role_" + e.to_role) : "—")}.${e.note ? ` « ${e.note} »` : ""}`
+                        : `${e.by ?? "Admin"} → ${e.status ? t("status_" + e.status) : ""}.`}
                   </Text>
                 </View>
               </View>
@@ -199,40 +198,40 @@ export default function ReportDetail() {
 
           {alreadyForwarded ? (
             <Card style={{ marginTop: space.lg }}>
-              <SectionTitle icon="create-outline">{S.actor.summary}</SectionTitle>
-              <Banner kind="success">{S.actor.alreadyForwarded.replace("{to}", forwardedTo)}</Banner>
+              <SectionTitle icon="create-outline">{t("actor_summary")}</SectionTitle>
+              <Banner kind="success">{t("actor_already_forwarded", { to: forwardedTo })}</Banner>
               {canSuggest ? <SuggestBlock onPress={propose} loading={busy === "suggest"} suggestion={suggestion} /> : null}
-              <Field label={S.actor.summaryConcise} hint={`🔒 ${S.actor.summaryConciseHint}`} multiline value={summary} onChangeText={setSummary} maxLength={MAX_DESCRIPTION} />
-              <Button variant="primary" icon="checkmark-outline" title={S.actor.saveSummary} loading={busy === "summary"} disabled={!summary.trim()} onPress={doSummary} />
+              <Field label={t("actor_summary_concise")} hint={`🔒 ${t("actor_summary_concise_hint")}`} multiline value={summary} onChangeText={setSummary} maxLength={MAX_DESCRIPTION} />
+              <Button variant="primary" icon="checkmark-outline" title={t("actor_save_summary")} loading={busy === "summary"} disabled={!summary.trim()} onPress={doSummary} />
             </Card>
           ) : null}
 
           {actor && actor.can_forward_to.length > 0 && !alreadyForwarded ? (
             <Card style={{ marginTop: space.lg }}>
-              <SectionTitle icon="arrow-redo-outline">{S.actor.forward}</SectionTitle>
-              {mustSummarize ? <Banner kind="info">{S.actor.relayRole}</Banner> : null}
-              <Muted>{S.actor.forwardTo}</Muted>
+              <SectionTitle icon="arrow-redo-outline">{t("actor_forward")}</SectionTitle>
+              {mustSummarize ? <Banner kind="info">{t("actor_relay_role")}</Banner> : null}
+              <Muted>{t("actor_forward_to")}</Muted>
               {targets.map((tg) => (
                 <Choice key={tg.key} icon={tg.icon} label={tg.label} sub={tg.sub} selected={to?.key === tg.key} onPress={() => setTo(tg)} />
               ))}
               {canSuggest ? <SuggestBlock onPress={propose} loading={busy === "suggest"} suggestion={suggestion} /> : null}
-              <Field label={mustSummarize ? S.actor.summaryConcise : S.actor.summaryLabel} hint={`🔒 ${S.actor.summaryConciseHint}`} multiline value={summary} onChangeText={setSummary} maxLength={MAX_DESCRIPTION} />
-              <Field label={S.actor.noteLabel} icon="chatbubble-outline" placeholder={S.actor.notePlaceholder} value={note} onChangeText={setNote} maxLength={NOTE_MAX} />
-              <Button variant="primary" icon="send-outline" title={S.actor.forward} loading={busy === "forward"} disabled={!to || (mustSummarize && !summary.trim())} onPress={doForward} />
+              <Field label={mustSummarize ? t("actor_summary_concise") : t("actor_summary_label")} hint={`🔒 ${t("actor_summary_concise_hint")}`} multiline value={summary} onChangeText={setSummary} maxLength={MAX_DESCRIPTION} />
+              <Field label={t("actor_note_label")} icon="chatbubble-outline" placeholder={t("actor_note_placeholder")} value={note} onChangeText={setNote} maxLength={NOTE_MAX} />
+              <Button variant="primary" icon="send-outline" title={t("actor_forward")} loading={busy === "forward"} disabled={!to || (mustSummarize && !summary.trim())} onPress={doForward} />
             </Card>
           ) : null}
 
           {actor?.can_set_status ? (
             <Card style={{ marginTop: space.lg }}>
-              <SectionTitle icon="people-outline">{S.actor.status}</SectionTitle>
+              <SectionTitle icon="people-outline">{t("actor_status")}</SectionTitle>
               {api.STATUSES.map((st) => (
-                <Choice key={st} icon={statusIcon[st] as IconName} label={S.statuses[st]} selected={status === st} onPress={() => setStatus(st)} />
+                <Choice key={st} icon={statusIcon[st] as IconName} label={t("status_" + st)} selected={status === st} onPress={() => setStatus(st)} />
               ))}
-              <Field label={S.actor.partnerNote} hint={S.actor.partnerNoteHint} multiline value={partnerNote} onChangeText={setPartnerNote} maxLength={NOTE_MAX} />
-              <Button variant="primary" icon="checkmark-outline" title={S.actor.save} loading={busy === "status"} onPress={doStatus} />
+              <Field label={t("actor_partner_note")} hint={t("actor_partner_note_hint")} multiline value={partnerNote} onChangeText={setPartnerNote} maxLength={NOTE_MAX} />
+              <Button variant="primary" icon="checkmark-outline" title={t("actor_save")} loading={busy === "status"} onPress={doStatus} />
             </Card>
           ) : !mustSummarize ? (
-            <Banner kind="info">{S.actor.noStatusRight}</Banner>
+            <Banner kind="info">{t("actor_no_status_right")}</Banner>
           ) : null}
         </>
       ) : null}

@@ -9,7 +9,12 @@ export const LANGS: { code: string; name: string }[] = [
   { code: "mos", name: "Mooré" },
   { code: "dyu", name: "Dioula" },
   { code: "en", name: "English" },
+  { code: "pt", name: "Português" },
+  { code: "ar", name: "العربية" },
 ];
+
+// Langues écrites de droite à gauche.
+export const RTL_LANGS = ["ar"];
 
 export const MAX_DESCRIPTION = 2000;
 export const NOTE_MAX = 280;

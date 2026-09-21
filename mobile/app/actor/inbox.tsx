@@ -7,7 +7,6 @@ import * as api from "@/api";
 import { errorMessage } from "@/errors";
 import { useI18n } from "@/i18n";
 import { useSession } from "@/session";
-import { S } from "@/strings";
 import { mono, roleIcon, space, statusColor, statusIcon, subtypeIcon, type, useTheme } from "@/theme";
 import { Banner, Button, Card, Chip, Empty, IconName, Loading, Pill, Screen } from "@/ui";
 
@@ -67,29 +66,29 @@ export default function Inbox() {
             <Ionicons name={roleIcon[actor.role] as IconName} size={22} color={th.primary} />
             <View style={{ flex: 1 }}>
               <Text style={[type.body, { fontWeight: "600", color: th.text }]}>{actor.name}</Text>
-              <Text style={[type.caption, { color: th.textSecondary }]}>{S.roles[actor.role]} · {actor.commune ?? actor.region}</Text>
+              <Text style={[type.caption, { color: th.textSecondary }]}>{t("role_" + actor.role)} · {actor.commune ?? actor.region}</Text>
             </View>
-            <Button small variant="ghost" icon="log-out-outline" title={S.actor.logout} onPress={async () => { await signOut(); router.replace("/home"); }} />
+            <Button small variant="ghost" icon="log-out-outline" title={t("actor_logout")} onPress={async () => { await signOut(); router.replace("/home"); }} />
           </View>
         ) : null}
         {actor ? <Text style={[type.bodySm, { color: th.textSecondary, marginTop: space.sm }]}>{ROLE_INTRO[actor.role](actor)}</Text> : null}
 
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: space.sm, paddingVertical: space.sm + 4 }}>
-          <Chip icon="albums-outline" selected={status === ""} label={S.actor.all} onPress={() => setStatus("")} />
+          <Chip icon="albums-outline" selected={status === ""} label={t("actor_all")} onPress={() => setStatus("")} />
           {api.STATUSES.map((st) => (
-            <Chip key={st} icon={statusIcon[st] as IconName} selected={status === st} label={counts[st] && status === "" ? `${S.statuses[st]} (${counts[st]})` : S.statuses[st]} onPress={() => setStatus(st)} />
+            <Chip key={st} icon={statusIcon[st] as IconName} selected={status === st} label={counts[st] && status === "" ? `${t("status_" + st)} (${counts[st]})` : t("status_" + st)} onPress={() => setStatus(st)} />
           ))}
         </ScrollView>
-        {actor?.must_summarize ? <Button variant="primary" icon="add-outline" title={S.actor.newCase} onPress={() => router.push("/actor/new")} /> : null}
+        {actor?.must_summarize ? <Button variant="primary" icon="add-outline" title={t("actor_new_case")} onPress={() => router.push("/actor/new")} /> : null}
 
         {error ? <Banner kind="error">{error}</Banner> : null}
         {rows === null && !error ? <Loading /> : null}
-        {rows?.length === 0 ? <Empty icon="mail-open-outline">{S.actor.empty}</Empty> : null}
+        {rows?.length === 0 ? <Empty icon="mail-open-outline">{t("actor_empty")}</Empty> : null}
         {rows?.map((r) => (
           <Card key={r.id} accent={colors[r.status]} onPress={() => router.push({ pathname: "/actor/[id]", params: { id: r.id } })}>
             <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
               <Text style={{ fontFamily: mono, fontSize: 15, fontWeight: "700", color: th.text }}>{r.code}</Text>
-              <Pill icon={statusIcon[r.status] as IconName} label={S.statuses[r.status]} color={colors[r.status]} />
+              <Pill icon={statusIcon[r.status] as IconName} label={t("status_" + r.status)} color={colors[r.status]} />
             </View>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
               <Ionicons name={((r.subtype && subtypeIcon[r.subtype]) || "alert-circle") as IconName} size={16} color={th.primary} />
@@ -98,7 +97,7 @@ export default function Inbox() {
               </Text>
             </View>
             <Text style={[type.caption, { color: th.textSecondary }]}>
-              {r.commune ?? r.region} · {new Date(r.created_at).toLocaleDateString()} · {S.actor.with} {r.assignee ?? (r.target_role ? S.roles[r.target_role] : S.actor.unassigned)}
+              {r.commune ?? r.region} · {new Date(r.created_at).toLocaleDateString()} · {t("actor_with")} {r.assignee ?? (r.target_role ? t("role_" + r.target_role) : t("actor_unassigned"))}
             </Text>
             <Text numberOfLines={2} style={[type.bodySm, { color: th.text, marginTop: 2 }]}>
               {r.summary ?? r.description ?? (r.legacy ? "🔒 ancien format" : "—")}

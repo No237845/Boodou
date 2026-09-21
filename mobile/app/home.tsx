@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { Linking, Pressable, Text, View } from "react-native";
+import { Image, Linking, Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import * as api from "@/api";
@@ -9,8 +9,8 @@ import { useDraft } from "@/draft";
 import { useI18n } from "@/i18n";
 import { useSession } from "@/session";
 import { tc } from "@/strings";
-import { mono, radius, space, type, useTheme } from "@/theme";
-import { ActionCard, Banner, Button, Caption, H1, Screen, SectionTitle } from "@/ui";
+import { radius, space, type, useTheme } from "@/theme";
+import { ActionCard, Banner, Button, Caption, H1, Screen } from "@/ui";
 
 export default function Home() {
   const { t, lang } = useI18n();
@@ -30,7 +30,7 @@ export default function Home() {
       {/* Barre de marque, comme l'en-tête du site : nom à gauche, langue à droite. */}
       <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingTop: insets.top, paddingBottom: space.sm, borderBottomWidth: 1, borderBottomColor: th.border }}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: space.sm }}>
-          <Ionicons name="shield-checkmark-outline" size={22} color={th.primary} />
+          <Image source={require("../assets/logo.png")} style={{ width: 34, height: 24 }} resizeMode="contain" accessible={false} />
           <Text style={[type.h3, { color: th.text }]}>{t("app_name")}</Text>
         </View>
         <Pressable onPress={() => router.push("/lang")} accessibilityRole="button" style={{ flexDirection: "row", alignItems: "center", gap: 4, borderWidth: 1, borderColor: th.border, paddingHorizontal: 10, paddingVertical: 4, borderRadius: radius.full }}>
@@ -40,7 +40,30 @@ export default function Home() {
       </View>
 
       <H1>{t("tagline")}</H1>
-      <Banner kind="lock">{t("anon_banner")}</Banner>
+
+      {/* Urgence d'abord, au-dessus de tout : un chiffre se lit dans toutes les langues. */}
+      {emergency.length > 0 ? (
+        <View style={{ backgroundColor: th.accentLight, borderWidth: 1, borderColor: th.accent, borderRadius: radius.lg, padding: 12, marginBottom: space.sm }}>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginBottom: space.sm }}>
+            <Ionicons name="call-outline" size={18} color={th.accent} />
+            <Text style={[type.h3, { color: th.accent, fontSize: 16 }]}>{t("home_emergency")}</Text>
+          </View>
+          <View style={{ flexDirection: "row", gap: space.sm }}>
+            {emergency.map((r) => (
+              <Pressable
+                key={r.name}
+                accessibilityRole="button"
+                accessibilityLabel={`${r.phone} ${r.name}`}
+                onPress={() => Linking.openURL(`tel:${r.phone}`)}
+                style={({ pressed }) => ({ flex: 1, minHeight: 64, alignItems: "center", justifyContent: "center", padding: 6, borderRadius: radius.md, borderWidth: 1, borderColor: th.border, backgroundColor: th.surface, opacity: pressed ? 0.8 : 1 })}
+              >
+                <Text style={{ fontSize: 28, lineHeight: 32, fontWeight: "700", color: th.accent }}>{r.phone}</Text>
+                <Text style={[type.caption, { color: th.textSecondary, textAlign: "center" }]} numberOfLines={2}>{r.name}</Text>
+              </Pressable>
+            ))}
+          </View>
+        </View>
+      ) : null}
 
       <ActionCard
         hero
@@ -57,17 +80,7 @@ export default function Home() {
       <ActionCard icon="chatbubbles-outline" title={t("home_talk")} sub={t("home_talk_sub")} onPress={() => router.push({ pathname: "/resources", params: { category: "ONG" } })} />
       <ActionCard icon="search-outline" title={t("home_track")} sub={t("home_track_sub")} onPress={() => router.push("/track")} />
 
-      {emergency.length > 0 ? (
-        <View style={{ backgroundColor: th.warningLight, borderRadius: radius.lg, padding: space.md, marginTop: space.lg }}>
-          <SectionTitle icon="call-outline">{t("home_emergency")}</SectionTitle>
-          {emergency.map((r) => (
-            <Pressable key={r.name} accessibilityRole="button" onPress={() => Linking.openURL(`tel:${r.phone}`)} style={{ flexDirection: "row", alignItems: "center", gap: space.sm, paddingVertical: 6 }}>
-              <Text style={{ fontFamily: mono, fontSize: 22, fontWeight: "700", color: th.primary, minWidth: 44 }}>{r.phone}</Text>
-              <Text style={[type.body, { color: th.text, flex: 1 }]}>{r.name}</Text>
-            </Pressable>
-          ))}
-        </View>
-      ) : null}
+      <Banner kind="lock">{t("anon_banner")}</Banner>
 
       <View style={{ marginTop: space.xl, alignItems: "center" }}>
         <Button

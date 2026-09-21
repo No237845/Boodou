@@ -8,7 +8,7 @@ import { MAX_DESCRIPTION } from "@/config";
 import { errorMessage } from "@/errors";
 import { useI18n } from "@/i18n";
 import { useSession } from "@/session";
-import { S, tc } from "@/strings";
+import { tc } from "@/strings";
 import { SuggestBlock } from "@/suggestion";
 import { VoiceInput } from "@/voice";
 import { roleIcon, space, subtypeIcon, typeIcon, useTheme } from "@/theme";
@@ -60,7 +60,7 @@ export default function NewCase() {
         setTypes(ty);
         setRegions(rg);
         setTargets([
-          ...actor.can_forward_to.map<Target>((role) => ({ key: "role:" + role, label: `${S.actor.anyone} ${S.roles[role]}`, sub: actor.region, icon: roleIcon[role] as IconName, to_role: role })),
+          ...actor.can_forward_to.map<Target>((role) => ({ key: "role:" + role, label: `${t("actor_anyone")} ${t("role_" + role)}`, sub: actor.region, icon: roleIcon[role] as IconName, to_role: role })),
           ...people.map<Target>((p) => ({ key: "actor:" + p.id, label: p.name, sub: [p.organisation, p.commune].filter(Boolean).join(" · "), icon: "person", to_actor_id: p.id })),
         ]);
         setLoaded(true);
@@ -99,8 +99,8 @@ export default function NewCase() {
         <H1 style={{ textAlign: "center" }}>{t("confirm_code_title")}</H1>
         <CodeBox code={code} />
         <Button variant="primary" icon={copied ? "checkmark" : "copy-outline"} title={copied ? tc("fr", "copied") : tc("fr", "copy")} onPress={async () => { await Clipboard.setStringAsync(code); setCopied(true); }} />
-        <Banner kind="warn">{S.actor.giveCode}</Banner>
-        <Button icon="mail-outline" title={S.actor.inbox} onPress={() => router.replace("/actor/inbox")} style={{ marginTop: space.lg }} />
+        <Banner kind="warn">{t("actor_give_code")}</Banner>
+        <Button icon="mail-outline" title={t("actor_inbox")} onPress={() => router.replace("/actor/inbox")} style={{ marginTop: space.lg }} />
       </Screen>
     );
   }
@@ -108,9 +108,9 @@ export default function NewCase() {
   const ready = subtype && region && commune && to && description.trim().length > 0 && (!actor.must_summarize || summary.trim().length > 0);
 
   return (
-    <Screen footer={<Button variant="primary" icon="send-outline" title={S.actor.createAndForward} loading={busy} disabled={!ready} onPress={submit} />}>
-      <H1>{S.actor.newCase}</H1>
-      <Banner kind="lock">{S.actor.newIntro}</Banner>
+    <Screen footer={<Button variant="primary" icon="send-outline" title={t("actor_create_and_forward")} loading={busy} disabled={!ready} onPress={submit} />}>
+      <H1>{t("actor_new_case")}</H1>
+      <Banner kind="lock">{t("actor_new_intro")}</Banner>
       {error ? <Banner kind="error">{error}</Banner> : null}
       {!loaded && !error ? <Loading /> : null}
       {loaded ? (
@@ -135,15 +135,15 @@ export default function NewCase() {
             <Choice key={c} icon="location-outline" label={c} selected={commune === c} onPress={() => setCommune(c)} />
           ))}
 
-          <SectionTitle icon="arrow-redo-outline">{S.actor.forward}</SectionTitle>
+          <SectionTitle icon="arrow-redo-outline">{t("actor_forward")}</SectionTitle>
           {targets.map((tg) => (
             <Choice key={tg.key} icon={tg.icon} label={tg.label} sub={tg.sub} selected={to?.key === tg.key} onPress={() => setTo(tg)} />
           ))}
 
           <VoiceInput onText={(spoken) => setDescription((d) => ((d ? d.trimEnd() + "\n" : "") + spoken).slice(0, MAX_DESCRIPTION))} />
-          <Field label={S.actor.what} hint={`🔒 ${S.actor.whatHint}`} multiline value={description} onChangeText={(v) => setDescription(v.slice(0, MAX_DESCRIPTION))} maxLength={MAX_DESCRIPTION} />
+          <Field label={t("actor_what")} hint={`🔒 ${t("actor_what_hint")}`} multiline value={description} onChangeText={(v) => setDescription(v.slice(0, MAX_DESCRIPTION))} maxLength={MAX_DESCRIPTION} />
           {actor.ai_available ? <SuggestBlock onPress={propose} loading={suggesting} suggestion={suggestion} disabled={description.trim().length < 10} /> : null}
-          <Field label={actor.must_summarize ? S.actor.summaryConcise : S.actor.summaryLabel} hint={`🔒 ${S.actor.summaryConciseHint}`} multiline value={summary} onChangeText={(v) => setSummary(v.slice(0, MAX_DESCRIPTION))} maxLength={MAX_DESCRIPTION} />
+          <Field label={actor.must_summarize ? t("actor_summary_concise") : t("actor_summary_label")} hint={`🔒 ${t("actor_summary_concise_hint")}`} multiline value={summary} onChangeText={(v) => setSummary(v.slice(0, MAX_DESCRIPTION))} maxLength={MAX_DESCRIPTION} />
         </>
       ) : null}
     </Screen>

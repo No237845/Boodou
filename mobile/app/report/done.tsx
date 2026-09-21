@@ -21,7 +21,7 @@ export default function ReportDone() {
 
   useEffect(() => {
     reset();
-    api.getResources({ type: rtype, subtype, region }).then(setResources).catch(() => {});
+    api.getResources({ type: rtype, subtype, region, lang: lang ?? undefined }).then(setResources).catch(() => {});
   }, []);
 
   return (

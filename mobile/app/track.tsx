@@ -24,7 +24,7 @@ export default function Track() {
     setError(null);
     setResult(null);
     try {
-      setResult(await api.track(code.trim()));
+      setResult(await api.track(code.trim(), lang ?? "fr"));
     } catch (e) {
       setError(errorMessage(e, lang));
     } finally {
