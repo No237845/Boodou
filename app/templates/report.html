@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "_icons.html" import icon, subtype_icons %}
 {% set lang_path = "/signaler" %}
 {% block title %}{{ t('report_title') }} — {{ t('app_name') }}{% endblock %}
 {% block content %}
@@ -17,7 +18,7 @@
     {% for s in subs %}
       <label class="choice">
         <input type="radio" name="subtype" value="{{ s.value }}" {% if form.subtype == s.value %}checked{% endif %} required>
-        {{ t('subtype_' ~ s.value) }}
+        {{ icon(subtype_icons[s.value]) }}<span>{{ t('subtype_' ~ s.value) }}</span>
       </label>
     {% endfor %}
   </fieldset>

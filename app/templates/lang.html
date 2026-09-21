@@ -1,10 +1,16 @@
 {% extends "base.html" %}
+{# La page EST le choix de langue : pas de pastilles en double. #}
+{% block langs %}{% endblock %}
 {% block content %}
-<h1>{{ t('choose_lang') }}</h1>
+<img class="logo" src="/static/logo.png" alt="" width="180" height="127">
+<h1 class="center">{{ t('choose_lang') }}</h1>
+{# Salutation dans chaque langue (même liste que mobile/app/lang.tsx) : qui ne
+   lit pas le français reconnaît la sienne au premier coup d'œil. #}
+{% set greeting = {'fr': 'Bonjour', 'mos': 'Ne y windga', 'dyu': 'I ni sɔgɔma', 'en': 'Hello', 'pt': 'Olá', 'ar': 'مرحبًا'} %}
 <div class="stack">
   {% for code, name in languages %}
-    <a class="btn big" href="/{{ code }}">{{ name }}</a>
+    <a class="btn big" lang="{{ code }}" href="/{{ code }}"><span class="center">{{ name }}<small>{{ greeting[code] }}</small></span></a>
   {% endfor %}
 </div>
-<p class="muted">{{ t('anon_banner') }}</p>
+<p class="muted center">{{ t('anon_banner') }}</p>
 {% endblock %}

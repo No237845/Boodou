@@ -6,6 +6,7 @@ from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 
 from .. import ratelimit
+from ..api_ai import translate_cache
 from ..config import BASE_DIR, settings
 from ..db import get_db
 from ..i18n import LANG_NAMES, normalize_lang, translator
@@ -45,7 +46,12 @@ def render(request: Request, name: str, lang: str, **ctx):
         name,
         {
             "lang": lang,
+            "rtl": lang in settings.rtl_languages,
             "t": translator(lang),
+            # t() = textes de l'interface (fichiers de langue) ; tr() = contenu
+            # venu de la base (annuaire, note d'un acteur), traduit en fond et
+            # servi depuis le cache — ou tel quel tant que ce n'est pas prêt.
+            "tr": lambda text: translate_cache.localized(text, lang),
             "languages": [(code, LANG_NAMES[code]) for code in settings.languages],
             # Pas de app_name ici : les gabarits passent par t('app_name'), qui
             # est traduisible. Deux sources pour un même nom, c'est une de trop.

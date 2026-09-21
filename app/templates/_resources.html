@@ -11,9 +11,9 @@
       <strong>{{ r.name }}</strong>
       <span class="meta">
         {% if r.city %}{{ r.city }}{% elif r.region == '*' %}{{ t('resources_national') }}{% else %}{{ r.region }}{% endif %}
-        {% if r.hours %} · {{ r.hours }}{% endif %}
+        {% if r.hours %} · {{ tr(r.hours) }}{% endif %}
       </span>
-      {% if r.notes %}<p>{{ r.notes }}</p>{% endif %}
+      {% if r.notes %}<p>{{ tr(r.notes) }}</p>{% endif %}
       {# Pas de mention « à confirmer » : `verified` ne sert plus qu'au tri, en interne.
          Sans numéro connu, la fiche reste utile — `notes` dit comment joindre la
          structure ou s'y rendre — mais elle passe derrière les fiches appelables. #}

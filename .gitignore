@@ -9,3 +9,14 @@ safety_venv/
 # Documents de spécification (non versionnés)
 *.docx
 *.pdf
+
+# Clés personnelles (jamais versionnées)
+API key.txt
+mobile/.env
+mobile/.env.local
+
+# Médias et fichiers temporaires
+*.mp4
+*.pptx
+*.tmp
+~WRL*

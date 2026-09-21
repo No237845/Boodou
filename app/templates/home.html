@@ -1,36 +1,38 @@
 {% extends "base.html" %}
+{% from "_icons.html" import icon, subtype_icons %}
 {% block content %}
 <h1>{{ t('tagline') }}</h1>
-<p class="banner">{{ t('anon_banner') }}</p>
 
-<div class="stack">
-  <a class="btn big primary" href="/{{ lang }}/signaler">
-    {{ t('home_report') }}<small>{{ t('home_report_sub') }}</small>
-  </a>
-  <a class="btn big" href="/{{ lang }}/ressources?type=GBV">
-    {{ t('home_help_gbv') }}<small>{{ t('home_help_gbv_sub') }}</small>
-  </a>
-  <a class="btn big" href="/{{ lang }}/ressources?cat=JUSTICE">
-    {{ t('home_help_security') }}<small>{{ t('home_help_security_sub') }}</small>
-  </a>
-  <a class="btn big" href="/{{ lang }}/ressources?cat=ONG">
-    {{ t('home_talk') }}<small>{{ t('home_talk_sub') }}</small>
-  </a>
-  <a class="btn big" href="/{{ lang }}/suivi">
-    {{ t('home_track') }}<small>{{ t('home_track_sub') }}</small>
-  </a>
-</div>
-
+{# Urgence d'abord, au-dessus de tout : un chiffre se lit dans toutes les langues. #}
 {% if emergency %}
 <section class="emergency">
-  <h2>{{ t('home_emergency') }}</h2>
+  <h2>{{ icon('phone', 20) }} {{ t('home_emergency') }}</h2>
   <ul class="phones">
     {% for r in emergency %}
-      <li><a href="tel:{{ r.phone }}">{{ r.phone }}</a> {{ r.name }}</li>
+      <li><a href="tel:{{ r.phone }}"><b>{{ r.phone }}</b><span>{{ r.name }}</span></a></li>
     {% endfor %}
   </ul>
 </section>
 {% endif %}
 
+<div class="stack">
+  <a class="btn big primary" href="/{{ lang }}/signaler">
+    {{ icon('report', 32) }}<span>{{ t('home_report') }}<small>{{ t('home_report_sub') }}</small></span>
+  </a>
+  <a class="btn big" href="/{{ lang }}/ressources?type=GBV">
+    {{ icon('heart', 32) }}<span>{{ t('home_help_gbv') }}<small>{{ t('home_help_gbv_sub') }}</small></span>
+  </a>
+  <a class="btn big" href="/{{ lang }}/ressources?cat=JUSTICE">
+    {{ icon('shield', 32) }}<span>{{ t('home_help_security') }}<small>{{ t('home_help_security_sub') }}</small></span>
+  </a>
+  <a class="btn big" href="/{{ lang }}/ressources?cat=ONG">
+    {{ icon('chat', 32) }}<span>{{ t('home_talk') }}<small>{{ t('home_talk_sub') }}</small></span>
+  </a>
+  <a class="btn big" href="/{{ lang }}/suivi">
+    {{ icon('search', 32) }}<span>{{ t('home_track') }}<small>{{ t('home_track_sub') }}</small></span>
+  </a>
+</div>
+
+<p class="banner">{{ t('anon_banner') }}</p>
 <p class="muted">{{ t('home_whatsapp') }}</p>
 {% endblock %}

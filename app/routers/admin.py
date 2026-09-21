@@ -26,7 +26,7 @@ from ..i18n import translator
 from ..models import PARTNER_NOTE_MAX, Actor, ActorRole, Report, ReportStatus, ReportType, format_code
 from ..seed import communes_of, load_regions, region_names
 from ..services import decrypt_texts, set_status
-from .espace import ROLE_LABELS, STATUS_LABELS
+from .espace import _base_ctx as _espace_ctx
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 templates = Jinja2Templates(directory=BASE_DIR / "templates")
@@ -71,8 +71,9 @@ def _base_ctx(**extra) -> dict:
         "t": _t,
         "types": list(ReportType),
         "statuses": list(ReportStatus),
-        "status_labels": STATUS_LABELS,
-        "role_labels": ROLE_LABELS,
+        # L'admin reste en français : mêmes libellés que l'espace acteurs, dans cette langue.
+        "status_labels": _espace_ctx("fr")["status_labels"],
+        "role_labels": _espace_ctx("fr")["role_labels"],
         "roles": list(ActorRole),
         "regions": region_names(),
         **extra,

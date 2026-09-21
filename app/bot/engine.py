@@ -23,13 +23,14 @@ from dataclasses import dataclass, field
 from sqlalchemy.orm import Session
 
 from .. import ratelimit
+from ..api_ai import translate_cache
 from ..config import settings
 from ..i18n import t
 from ..models import SUBTYPES, ActorRole, Channel, ReportSubtype, ReportType, ResourceCategory, format_code
 from ..seed import communes_of, region_names
 from ..services import ValidationError, create_report, find_report, find_resources, public_relais
 
-LANG_CHOICES = {"1": "fr", "2": "mos", "3": "dyu", "4": "en"}
+LANG_CHOICES = {"1": "fr", "2": "mos", "3": "dyu", "4": "en", "5": "pt", "6": "ar"}
 TYPES = list(SUBTYPES)  # VBG puis sécurité, dans l'ordre du menu
 MENU_KEYWORDS = {"0", "menu", "annuler", "retour", "stop"}
 RESTART_KEYWORDS = {"bonjour", "salut", "hello", "hi", "start", "langue", "language"}
@@ -114,7 +115,8 @@ def _format_resources(lang: str, resources, intro: str = "") -> list[str]:
             lines.append(f"\n*{t(lang, 'cat_' + r.category.value)}*")
         where = r.city or (t(lang, "resources_national") if r.region == "*" else r.region)
         phone = f" 📞 {r.phone}" if r.phone else ""
-        lines.append(f"• {r.name}{phone}\n  {where}{' · ' + r.hours if r.hours else ''}")
+        hours = translate_cache.localized(r.hours, lang)
+        lines.append(f"• {r.name}{phone}\n  {where}{' · ' + hours if hours else ''}")
     return _chunk("\n".join(lines).strip())
 
 
@@ -328,7 +330,7 @@ def _track_code(db: Session, channel: Channel, s: BotSession, msg: str) -> list[
     )
     if report.partner_note:
         # Le mot du partenaire peut être parlant pour qui lit par-dessus l'épaule.
-        text += t(lang, "bot_track_note", note=report.partner_note)
+        text += t(lang, "bot_track_note", note=translate_cache.localized(report.partner_note, lang))
         return _chunk(text + t(lang, "bot_back_hint") + t(lang, "bot_wipe_hint"))
     return _chunk(text + t(lang, "bot_back_hint"))
 

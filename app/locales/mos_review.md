@@ -1,10 +1,6 @@
-# Relecture mos — traduction complète à valider
+# Relecture mos — traductions automatiques à valider
 
-Traduction Mooré intégrale de `fr.json`, **non encore validée par un locuteur natif**. Corriger directement dans `app/locales/mos.json`, puis retirer la clé de `_auto`.
-
-Priorité de relecture : `bot_wipe` et `bot_wipe_hint` (textes de sécurité), puis `bot_menu`, `bot_ask_description` et `confirm_code_*` (ils conditionnent la compréhension du parcours).
-
-Ne pas toucher : les chiffres des menus (`1 -`, `0 -`, `99 -`), les numéros d'urgence (17 / 16 / 18), les variables entre accolades (`{code}`, `{regions}`, `{max}`, `{status}`, `{help}`, `{sent}`, `{note}`) et les mots que le moteur reconnaît : « Bonjour » et « EFFACER ».
+Généré par `scripts/translate_locales.py`. Corriger directement dans `app/locales/mos.json`, puis retirer la clé de `_auto`.
 
 ## `app_name`
 
@@ -300,40 +296,12 @@ De quoi s'agit-il ?
 Bõn-bõn la wãsgã ?
 ```
 
-## `type_VIOLENCE`
-
-**FR**
-
-```
-Violence physique
-```
-
-**MOS**
-
-```
-Wãsgã ne yãmb yĩngẽ
-```
-
-## `type_MENACE`
-
-**FR**
-
-```
-Menace ou intimidation
-```
-
-**MOS**
-
-```
-Yãmb yĩngẽ wall yãmb sɩdga
-```
-
 ## `type_GBV`
 
 **FR**
 
 ```
-Violence faite à une femme ou une fille
+Violence faite à une femme ou une fille (VBG)
 ```
 
 **MOS**
@@ -342,26 +310,12 @@ Violence faite à une femme ou une fille
 Wãsgã sẽn tʋm ne paga wall biiga
 ```
 
-## `type_TERRORISME`
-
-**FR**
-
-```
-Attaque ou activité terroriste
-```
-
-**MOS**
-
-```
-Kẽerga wall tʋʋm sẽn yaa terroriste
-```
-
 ## `report_region`
 
 **FR**
 
 ```
-Région (approximative)
+Région
 ```
 
 **MOS**
@@ -375,7 +329,7 @@ Région (sẽn ka yaa yãmb yirã)
 **FR**
 
 ```
-Commune (facultatif)
+Commune
 ```
 
 **MOS**
@@ -389,7 +343,7 @@ Commune (ka yaa obligatoire)
 **FR**
 
 ```
-Ne mettez pas votre quartier ni votre maison.
+Choisissez la commune la plus proche. Ne mettez pas votre quartier ni votre maison.
 ```
 
 **MOS**
@@ -417,7 +371,7 @@ Bõn-bõn la sẽn yĩngẽ ?
 **FR**
 
 ```
-Ce texte est chiffré : seule l'organisation partenaire peut le lire. Ni nous, ni un pirate.
+Ce texte est chiffré. Seules les personnes chargées de votre dossier peuvent le lire.
 ```
 
 **MOS**
@@ -445,7 +399,7 @@ Tʋm n ka yãk yãmb yĩnga
 **FR**
 
 ```
-Merci de choisir un type, une région et d'écrire une description.
+Merci de choisir de quoi il s'agit, une région, une commune, et d'écrire une description.
 ```
 
 **MOS**
@@ -577,7 +531,7 @@ Suivre un signalement
 **MOS**
 
 ```
-Tõogẽ n yãk yãmb wilgã
+Pʋge
 ```
 
 ## `track_intro`
@@ -697,7 +651,7 @@ lebga le
 **FR**
 
 ```
-Message de l'organisation partenaire
+Message de la personne qui s'occupe de votre dossier
 ```
 
 **MOS**
@@ -725,69 +679,13 @@ Yãkame
 **FR**
 
 ```
-Votre signalement est arrivé, chiffré. Il attend d'être ouvert par un partenaire.
+Votre signalement est arrivé. Il attend d'être lu par la personne à qui vous l'avez adressé.
 ```
 
 **MOS**
 
 ```
 Yãmb wilgã wã kẽesame, a chifré la. A gũus n yãkẽ organisation partenaire.
-```
-
-## `status_TRANSMIS`
-
-**FR**
-
-```
-Pris en charge
-```
-
-**MOS**
-
-```
-Yãkame n tʋm
-```
-
-## `status_TRANSMIS_help`
-
-**FR**
-
-```
-Une organisation partenaire l'a lu et s'en occupe.
-```
-
-**MOS**
-
-```
-Organisation partenaire yãkame n ges yãmb wilgã la a tʋm ne a.
-```
-
-## `status_CLOTURE`
-
-**FR**
-
-```
-Clôturé
-```
-
-**MOS**
-
-```
-Kẽesã wã wã
-```
-
-## `status_CLOTURE_help`
-
-**FR**
-
-```
-Le dossier est terminé. Vous pouvez signaler à nouveau si la situation continue.
-```
-
-**MOS**
-
-```
-Dossierã wã kẽesame. Sẽn yaa yãmb pʋgẽ wã n lebg n kẽes, yãmb tõe n wilgẽ n lebg.
 ```
 
 ## `resources_title`
@@ -858,20 +756,6 @@ National
 
 ```
 National
-```
-
-## `resources_unverified`
-
-**FR**
-
-```
-Numéro à confirmer
-```
-
-**MOS**
-
-```
-Numéro sẽn ka yɩɩlga
 ```
 
 ## `resources_none`
@@ -991,7 +875,7 @@ Suivi
 **FR**
 
 ```
-Service anonyme. Vos données sont chiffrées de bout en bout.
+Service anonyme. Vos données sont chiffrées.
 ```
 
 **MOS**
@@ -1008,10 +892,11 @@ Sõngã wã yaa anonyme. Yãmb data fãa chifré la.
 Bonjour, ici *Boodou* 🛡️
 Service anonyme de signalement et d'aide.
 
-Choisissez votre langue / Yãk y buud-gomde / I ka kan sugandi :
+Choisissez votre langue / Yãk y buud-gomde / I ka kan sugandi / Choose your language :
 1 - Français
 2 - Mooré
 3 - Dioula
+4 - English
 ```
 
 **MOS**
@@ -1020,42 +905,11 @@ Choisissez votre langue / Yãk y buud-gomde / I ka kan sugandi :
 Ne yibeo *Boodou* 🛡️
 Sõngã sẽn ka yãmb yĩnga n wilgẽ la n sõngã.
 
-Yãk yãmb gomde / Yãk y buud-gomde / I ka kan sugandi :
+Yãk yãmb gomde / Yãk y buud-gomde / I ka kan sugandi / Choose your language :
 1 - Français
 2 - Mooré
 3 - Dioula
-```
-
-## `bot_menu`
-
-**FR**
-
-```
-Que cherchez-vous ?
-
-1 - Signaler un incident
-2 - Ressources d'aide (violences faites aux femmes)
-3 - Ressources d'aide (sécurité)
-4 - Parler à quelqu'un
-5 - Suivre un signalement
-6 - Effacer cette conversation
-
-_Urgence : Police 17 · Gendarmerie 16 · Pompiers 18_
-```
-
-**MOS**
-
-```
-Bõn-bõn la yãmb na n yãkẽ ?
-
-1 - Wilgẽ bõn-bõn sẽn yĩngẽ
-2 - Sõngã (wãsgã ne pagba)
-3 - Sõngã (sécurité)
-4 - Gomd ne ned
-5 - Tõogẽ n yãk yãmb wilgã
-6 - Yãk gomdã wã fãa n yĩngẽ
-
-_Urgence : Polis 17 · Gendarmerie 16 · Pompiers 18_
+4 - English
 ```
 
 ## `bot_invalid`
@@ -1081,10 +935,7 @@ Tõogẽ 0 n lebg n menuyã.
 ```
 De quoi s'agit-il ?
 
-1 - Violence physique
-2 - Menace ou intimidation
-3 - Violence faite à une femme ou une fille
-4 - Attaque ou activité terroriste
+{choices}
 
 0 - Retour au menu
 ```
@@ -1092,14 +943,11 @@ De quoi s'agit-il ?
 **MOS**
 
 ```
-Bõn-bõn la wãsgã ?
+Yaa bõe ??
 
-1 - Wãsgã ne yãmb yĩngẽ
-2 - Yãmb yĩngẽ wall yãmb sɩdga
-3 - Wãsgã sẽn tʋm ne paga wall biiga
-4 - Kẽerga wall tʋʋm sẽn yaa terroriste
+{choices}
 
-0 - Lebg n menuyã
+0 - Lebg n wa tõk-tigindã
 ```
 
 ## `bot_ask_region`
@@ -1117,11 +965,11 @@ Dans quelle région ? (approximatif, jamais votre adresse)
 **MOS**
 
 ```
-Région wã yaa bõn-bõn ? (ka yaa yãmb yirã, approximation bala)
+Reezõ bʋgo? (mak n gese, fo ka mi fo zĩig ye)
 
 {regions}
 
-0 - Lebg n menuyã
+0 - Lebg n wa tõk-tigindã
 ```
 
 ## `bot_ask_region_optional`
@@ -1140,12 +988,12 @@ Dans quelle région cherchez-vous de l'aide ?
 **MOS**
 
 ```
-Région bõn-bõn la yãmb na n yãk sõngã ?
+Zĩ-bʋg la yãmb baood sõngre??
 
 {regions}
 
-99 - Ka yaa yĩnga / national
-0 - Lebg n menuyã
+99 - Sẽn yaa toore
+0 - Lebg n wa tõk-tigindã
 ```
 
 ## `bot_ask_description`
@@ -1156,7 +1004,7 @@ Région bõn-bõn la yãmb na n yãk sõngã ?
 Décrivez ce qui s'est passé, en quelques phrases.
 ⚠️ Ne donnez aucun nom ni numéro de téléphone.
 
-🔒 Votre message sera chiffré : seule l'organisation partenaire pourra le lire.
+🔒 Votre message sera chiffré : seules les personnes chargées de votre dossier pourront le lire.
 
 0 - Annuler
 ```
@@ -1252,30 +1100,6 @@ Trop de tentatives. Réessayez dans un quart d'heure.
 Yãmb tʋmã wã yaa wãsgã. Gũs 15 minutes n tʋʋm n lebg.
 ```
 
-## `bot_track_result`
-
-**FR**
-
-```
-🔑 *{code}*
-
-État : *{status}*
-{help}
-
-Envoyé le {sent}.
-```
-
-**MOS**
-
-```
-🔑 *{code}*
-
-Yãmb wilgã wã : *{status}*
-{help}
-
-Tʋmã le {sent}.
-```
-
 ## `bot_track_note`
 
 **FR**
@@ -1283,7 +1107,7 @@ Tʋmã le {sent}.
 ```
 
 
-💬 *Message de l'organisation partenaire :*
+💬 *Message de la personne qui s'occupe de votre dossier :*
 {note}
 ```
 
@@ -1292,7 +1116,7 @@ Tʋmã le {sent}.
 ```
 
 
-💬 *Organisation partenaire sẽn tʋm gomd :*
+💬 *Ned ning sẽn get yãmb sebra yellã koɛɛg:*
 {note}
 ```
 
@@ -1370,68 +1194,6 @@ Appeler
 Yãk téléphonã
 ```
 
-## `bot_unverified`
-
-**FR**
-
-```
-(à confirmer)
-```
-
-**MOS**
-
-```
-(sẽn ka yɩɩlga)
-```
-
-## `bot_wipe`
-
-**FR**
-
-```
-🧹 *Effacé de notre côté.*
-Votre langue et votre menu en cours sont oubliés. Nous n'avons jamais eu votre numéro en clair, et rien de cette conversation n'est gardé chez nous.
-
-⚠️ *Mais cette discussion est sur VOTRE téléphone.* Nous n'avons aucun moyen de l'effacer à distance. Vous seul(e) pouvez le faire, en 3 gestes :
-
-📱 *Android*
-1. Retour à la liste des discussions
-2. Appui long sur cette discussion
-3. Touchez l'icône 🗑️
-
-📱 *iPhone*
-1. Retour à la liste des discussions
-2. Glissez cette discussion vers la gauche
-3. « Plus » puis « Supprimer »
-
-💡 *Pour que ça s'efface tout seul la prochaine fois :* ouvrez cette discussion, touchez le nom en haut, puis « Messages éphémères » → *24 heures*. Tout ce qu'on s'écrit disparaîtra ensuite sans que vous ayez à y penser.
-
-_Écrivez « Bonjour » quand vous voulez revenir._
-```
-
-**MOS**
-
-```
-🧹 *Yãmb gomdã wã kẽesã wã pʋgẽ fãa kẽesame.*
-Yãmb gomde la yãmb menuyã wã ka ningẽ. Tɩɩmã pʋgẽ, tõogẽ n yãk yãmb numéro ne yãmb yĩnga, la bõn-kãnga wã ka ning yãmb pʋgẽ.
-
-⚠️ *La gomdã wã yaa yãmb téléphone wã pʋgẽ.* Tõogẽ ka ningẽ n yãk a ne yãmb téléphone tɩɩmẽ. Yãmb bala la tõe n yãk a, ne tʋʋmã 3 :
-
-📱 *Android*
-1. Lebg n kẽes discussionsã wã list pʋgẽ
-2. Gũs ne yãmb n yãk gomdã wã
-3. Tõogẽ 🗑️
-
-📱 *iPhone*
-1. Lebg n kẽes discussionsã wã list pʋgẽ
-2. Yãk gomdã wã n zĩigã n kẽesẽ
-3. « Plus » n yãk « Supprimer »
-
-💡 *Sẽn na n yãk a yɩɩlẽ tɩɩmẽ :* kẽes gomdã wã pʋgẽ, yãk yãmb yĩngẽ ne yãmb yĩngã, n yãk « Messages éphémères » → *24 heures*. Gomdã fãa na n yãkẽ tɩɩmẽ ne yãmb ka na n tʋʋm bõn-kãnga.
-
-_Gomd « Bonjour » tɩ yãmb na n lebg._
-```
-
 ## `bot_wipe_hint`
 
 **FR**
@@ -1462,4 +1224,641 @@ Votre session a expiré. On recommence :
 
 ```
 Yãmb sessionã wã kẽesame. Tõogẽ n lebg n tʋʋm :
+```
+
+## `report_error_recipient`
+
+**FR**
+
+```
+Merci de choisir à qui envoyer le signalement.
+```
+
+**MOS**
+
+```
+Bark ne yãmb sẽn yãk n na n tool kibayã.
+```
+
+## `report_next`
+
+**FR**
+
+```
+Continuer
+```
+
+**MOS**
+
+```
+kell maane talle
+```
+
+## `report_change`
+
+**FR**
+
+```
+modifier
+```
+
+**MOS**
+
+```
+tedgẽ
+```
+
+## `type_SECURITE`
+
+**FR**
+
+```
+Sécurité : violence, menace, attaque
+```
+
+**MOS**
+
+```
+Yõ-koglgo: nen-keelem, bugsgo, wẽebo
+```
+
+## `subtype_VIOL`
+
+**FR**
+
+```
+Viol
+```
+
+**MOS**
+
+```
+pog-yogre
+```
+
+## `subtype_AGRESSION_SEXUELLE`
+
+**FR**
+
+```
+Agression sexuelle
+```
+
+**MOS**
+
+```
+Nen-yilinga
+```
+
+## `subtype_AGRESSION_PHYSIQUE`
+
+**FR**
+
+```
+Agression physique
+```
+
+**MOS**
+
+```
+Sũ-kiiri
+```
+
+## `subtype_MARIAGE_FORCE`
+
+**FR**
+
+```
+Mariage forcé
+```
+
+**MOS**
+
+```
+Modgre
+```
+
+## `subtype_DENI_RESSOURCES`
+
+**FR**
+
+```
+Déni de ressources, d'opportunités ou de services
+```
+
+**MOS**
+
+```
+Paoongo, zu-noog bɩ tʋʋm zãabo
+```
+
+## `subtype_VIOLENCE_PSYCHOLOGIQUE`
+
+**FR**
+
+```
+Violence psychologique ou émotionnelle
+```
+
+**MOS**
+
+```
+Nen-keelem
+```
+
+## `report_recipient`
+
+**FR**
+
+```
+À qui envoyer votre signalement ?
+```
+
+**MOS**
+
+```
+Yaa ãnd la yãmb na n tool y kibayã??
+```
+
+## `report_recipient_hint`
+
+**FR**
+
+```
+Un relais communautaire est une personne de confiance de votre commune, formée pour vous orienter. Vous pouvez aussi écrire directement à l'action sociale.
+```
+
+**MOS**
+
+```
+Lagem-n-taar tʋʋm-tʋmd yaa ned yãmb komindã sẽn tõe n teege, b zãms-a lame t'a tõe n wilg-y sore. yãmb tõe n gʋlsa lagem -n-taarã tʋʋm zĩigẽ me.
+```
+
+## `recipient_relais`
+
+**FR**
+
+```
+relais communautaire
+```
+
+**MOS**
+
+```
+Lagem-taaba
+```
+
+## `recipient_action_sociale`
+
+**FR**
+
+```
+Directement à l'action sociale
+```
+
+**MOS**
+
+```
+To-to nin-buiida sõngr yĩnga
+```
+
+## `recipient_action_sociale_hint`
+
+**FR**
+
+```
+service de l'État chargé de la protection
+```
+
+**MOS**
+
+```
+Leta tʋʋm-noor sẽn get koglgã yelle
+```
+
+## `report_no_relais`
+
+**FR**
+
+```
+Aucun relais communautaire n'est encore enregistré pour cette commune.
+```
+
+**MOS**
+
+```
+Komind-kãng pʋga, b nan ka gʋls lagem-n-taar tʋʋm ba a yembr ye.
+```
+
+## `voice_stop`
+
+**FR**
+
+```
+Arrêter
+```
+
+**MOS**
+
+```
+tabge
+```
+
+## `voice_recording`
+
+**FR**
+
+```
+Enregistrement en cours… parlez, puis touchez Arrêter.
+```
+
+**MOS**
+
+```
+Tõk-n-bĩngr sẽn ket n be... gome, la y tõk yals-yã.
+```
+
+## `voice_transcribing`
+
+**FR**
+
+```
+Transcription en cours…
+```
+
+**MOS**
+
+```
+Gʋlsem sẽn be...
+```
+
+## `voice_hint`
+
+**FR**
+
+```
+Votre voix est envoyée à un service de transcription, puis effacée. Le texte apparaît ici : relisez-le et corrigez si besoin. Ne dites aucun nom ni numéro.
+```
+
+**MOS**
+
+```
+Yãmb koɛɛg na n tʋma seb-gʋlsd zĩigẽ, la b yẽes-a lame. gʋlsmã na n zĩnda ka: karm-y-yã-a la y rems-a sã n yaa tɩlɛ. ra togs-y yʋʋr bɩ limor ye.
+```
+
+## `voice_done`
+
+**FR**
+
+```
+Texte ajouté ci-dessous. Relisez-le avant d'envoyer.
+```
+
+**MOS**
+
+```
+Gʋls-bil sẽn be ka n paasame. lebg-y n karem-y-yã-a n yaool n tool-a.
+```
+
+## `voice_denied`
+
+**FR**
+
+```
+L'accès au micro a été refusé. Vous pouvez écrire à la place.
+```
+
+**MOS**
+
+```
+B zãgsame tɩ b ka tõe n paam mikrã wã ye. yãmb tõe n gʋlsame.
+```
+
+## `voice_error`
+
+**FR**
+
+```
+La transcription n'a pas fonctionné. Réessayez, ou écrivez à la place.
+```
+
+**MOS**
+
+```
+Gʋlsgã pa tʋm ye. lebg-y n mak-y-yã, bi gʋls-y yɛsa.
+```
+
+## `voice_empty`
+
+**FR**
+
+```
+Nous n'avons rien entendu. Réessayez en parlant plus près du téléphone.
+```
+
+**MOS**
+
+```
+"tõnd pa wʋm baa fʋɩ ye." "m kotame tɩ y le bao n sõs ne taab n pẽ ne telefõna."
+```
+
+## `voice_lang_note`
+
+**FR**
+
+```
+La transcription comprend mieux le français et l'anglais.
+```
+
+**MOS**
+
+```
+Gʋlsgã wʋmda farẽn ne ãngilindi sõma n yɩɩda.
+```
+
+## `report_error_commune`
+
+**FR**
+
+```
+Cette commune n'est pas dans la région choisie.
+```
+
+**MOS**
+
+```
+Komind-kãngã ka be reezõ wã b sẽn yãkã pʋgẽ ye.
+```
+
+## `report_error_summary_required`
+
+**FR**
+
+```
+Merci de reformuler clairement la plainte avant de la transmettre.
+```
+
+**MOS**
+
+```
+Rẽ poorẽ bɩ f lebs yellã vẽenega, rẽ poorẽ tɩ f wa ne-a.
+```
+
+## `ai_unavailable`
+
+**FR**
+
+```
+L'assistant de reformulation est indisponible pour le moment. Reformulez à la main.
+```
+
+**MOS**
+
+```
+Lebsg sõangda ka be moasã ye. lebs-y ne nugã.
+```
+
+## `status_TRANSMIS`
+
+**FR**
+
+```
+Transmis
+```
+
+**MOS**
+
+```
+Togse
+```
+
+## `status_TRANSMIS_help`
+
+**FR**
+
+```
+Un relais ou le point focal l'a relu et transmis à l'action sociale ou à un gestionnaire de cas.
+```
+
+**MOS**
+
+```
+Tʋʋm-noor ning sẽn get-a yel-pakrã yell n lebg n ges-a lame n dɩk-a n taas sosɩyete wã tʋʋm-tʋmdb bɩ zu-loees yel-gɛtba.
+```
+
+## `status_PRIS_EN_CHARGE`
+
+**FR**
+
+```
+Pris en charge
+```
+
+**MOS**
+
+```
+N getẽ
+```
+
+## `status_PRIS_EN_CHARGE_help`
+
+**FR**
+
+```
+L'action sociale ou un gestionnaire de cas s'occupe de votre dossier.
+```
+
+**MOS**
+
+```
+Tʋʋm-noor ning sẽn get-a nin-buiid vɩɩm-n-taar koglg yellã, bɩ yell zãada soab n get yãmb sebra yelle.
+```
+
+## `status_REGLE`
+
+**FR**
+
+```
+Réglé
+```
+
+**MOS**
+
+```
+in ningui
+```
+
+## `status_REGLE_help`
+
+**FR**
+
+```
+Le dossier est terminé. Vous pouvez signaler à nouveau si la situation continue.
+```
+
+**MOS**
+
+```
+Seb-pidisdgã saame. yãmb tõe n le wilga yɛsa sã n mikame tɩ yellã ket n beeme.
+```
+
+## `bot_ask_subtype`
+
+**FR**
+
+```
+Précisez :
+
+{choices}
+
+0 - Retour au menu
+```
+
+**MOS**
+
+```
+Wilgi
+
+{choices}
+
+0 - Lebg n wa tõk-tigindã
+```
+
+## `bot_ask_commune`
+
+**FR**
+
+```
+Dans quelle commune ? (la plus proche)
+
+{communes}
+
+0 - Retour au menu
+```
+
+**MOS**
+
+```
+Komind bʋg pʋga?
+
+{communes}
+
+0 - Lebg n wa tõk-tigindã
+```
+
+## `bot_ask_recipient`
+
+**FR**
+
+```
+À qui envoyer votre signalement ?
+Un relais communautaire est une personne de confiance de votre commune, formée pour vous orienter.
+
+{choices}
+
+0 - Retour au menu
+```
+
+**MOS**
+
+```
+Yaa ãnd la yãmb na n tool y kibayã??
+Zems-n-taar tʋʋm-tʋmd yaa ned yãmb komindã sẽn tõe n teege, n paam zãmsgo n na n wilg-y sore.
+
+{choices}
+
+0 - Lebg n wa tõk-tigindã
+```
+
+## `bot_recipient_action_sociale`
+
+**FR**
+
+```
+Directement à l'action sociale (service de l'État)
+```
+
+**MOS**
+
+```
+Sẽn kẽed ne tẽn-tõrã nin-buiid vɩɩm-n-taar tʋʋm pʋgẽ.
+```
+
+## `bot_recipient_relais`
+
+**FR**
+
+```
+{name} — relais communautaire{where}
+```
+
+**MOS**
+
+```
+{name} - lagem-n-taar tʋʋm-noor reely {where}
+```
+
+---
+
+# À traduire à la main (le modèle n'a pas donné de résultat fiable)
+
+## `report_step`
+
+```
+Étape {n} sur {total}
+```
+
+## `voice_button`
+
+```
+Parler au lieu d'écrire
+```
+
+## `bot_menu`
+
+```
+Que cherchez-vous ?
+
+1 - Signaler un incident
+2 - Ressources d'aide (violences faites aux femmes)
+3 - Ressources d'aide (sécurité)
+4 - Parler à quelqu'un
+5 - Suivre un signalement
+6 - Effacer cette conversation
+
+_Urgence : Police 17 · Gendarmerie 16 · Pompiers 18_
+```
+
+## `bot_track_result`
+
+```
+🔑 *{code}*
+
+État : *{status}*
+{help}
+
+Envoyé le {sent}.
+```
+
+## `bot_wipe`
+
+```
+🧹 *Effacé de notre côté.*
+Votre langue et votre menu en cours sont oubliés. Nous n'avons jamais eu votre numéro en clair, et rien de cette conversation n'est gardé chez nous.
+
+⚠️ *Mais cette discussion est sur VOTRE téléphone.* Nous n'avons aucun moyen de l'effacer à distance. Vous seul(e) pouvez le faire, en 3 gestes :
+
+📱 *Android*
+1. Retour à la liste des discussions
+2. Appui long sur cette discussion
+3. Touchez l'icône 🗑️
+
+📱 *iPhone*
+1. Retour à la liste des discussions
+2. Glissez cette discussion vers la gauche
+3. « Plus » puis « Supprimer »
+
+💡 *Pour que ça s'efface tout seul la prochaine fois :* ouvrez cette discussion, touchez le nom en haut, puis « Messages éphémères » → *24 heures*. Tout ce qu'on s'écrit disparaîtra ensuite sans que vous ayez à y penser.
+
+_Écrivez « Bonjour » quand vous voulez revenir._
 ```

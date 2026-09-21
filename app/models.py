@@ -273,6 +273,26 @@ class ReportEvent(Base):
     to_actor: Mapped[Actor | None] = relationship(foreign_keys=[to_actor_id])
 
 
+class Translation(Base):
+    """Cache des traductions à la volée (app/api_ai/translate_cache.py).
+
+    Une ligne par (texte source, langue source, langue cible), identifiée par
+    un hachage. `output` NULL = la traduction a été jugée non fiable : on
+    affiche le texte source, et on ne réessaie pas. N'y entrent que des textes
+    publics ou destinés à la personne (annuaire, note d'un point focal) —
+    jamais le récit d'un signalement.
+    """
+
+    __tablename__ = "translations"
+
+    id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    src_lang: Mapped[str] = mapped_column(String(8), nullable=False)
+    tgt_lang: Mapped[str] = mapped_column(String(8), nullable=False)
+    source: Mapped[str] = mapped_column(Text, nullable=False)
+    output: Mapped[str | None] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
+
+
 class Resource(Base):
     """Organisation / hotline / centre d'aide."""
 

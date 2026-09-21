@@ -1,18 +1,27 @@
 {# Gabarit de l'espace acteurs (relais, point focal, action sociale, gestionnaire).
-   Français uniquement, comme l'espace admin : ce n'est pas une page publique.
-   Contexte : actor (peut être absent sur la page de connexion), role_labels. #}
+   Traduit via les clés actor_* / role_* (même fichiers que le site et le mobile) ;
+   la langue vient du cookie propre à /espace (voir espace.py).
+   Contexte : lang, rtl, t, languages, actor (absent sur la page de connexion), role_labels. #}
 {% extends "_layout.html" %}
 
-{% block title %}{% block page_title %}Espace acteurs{% endblock %} — Boodou{% endblock %}
+{% block html_lang %}{{ lang }}{% endblock %}
+{% block html_dir %}{% if rtl %} dir="rtl"{% endif %}{% endblock %}
+{% block title %}{% block page_title %}{{ t('actor_title') }}{% endblock %} — Boodou{% endblock %}
 
 {% block body %}
 <header class="top">
-  <a class="brand" href="/espace">Boodou · Espace acteurs</a>
+  <a class="brand" href="/espace"><img src="/static/logo.png" alt="" width="36" height="25">Boodou · {{ t('actor_title') }}</a>
   {% if actor %}
   <span class="who">{{ actor.name }} · {{ role_labels[actor.role] }} · {{ actor.commune or actor.region }}</span>
-  <form method="post" action="/espace/logout"><button class="btn small">Déconnexion</button></form>
+  <form method="post" action="/espace/logout"><button class="btn small">{{ t('actor_logout') }}</button></form>
   {% endif %}
 </header>
+
+<nav class="langs">
+  {% for code, name in languages %}
+    <a href="/espace/langue/{{ code }}?next={{ request.url.path | urlencode }}" {% if code == lang %}class="on"{% endif %}>{{ name }}</a>
+  {% endfor %}
+</nav>
 
 <main class="{% block main_class %}wide{% endblock %}">
 {% block content %}{% endblock %}

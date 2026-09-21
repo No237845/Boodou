@@ -68,6 +68,16 @@ class Settings(BaseSettings):
     # Taille max d'un enregistrement (octets). ~2 min d'AAC mono 32 kbit/s ≈ 500 Ko.
     speech_max_bytes: int = 8 * 1024 * 1024
 
+    # --- Traduction FR -> Mooré (app/api_ai/translate.py, Burkimbia) ---
+    # Clé Burkimbia. Sert (1) au script scripts/translate_locales.py pour
+    # remplir mos.json hors ligne, (2) en production pour traduire à la volée
+    # le contenu qui n'est pas dans les fichiers de langue (annuaire, messages
+    # des acteurs). Vide = le contenu dynamique reste en français en mooré.
+    # Seul du contenu public ou destiné à la personne est envoyé : jamais le
+    # récit d'un signalement.
+    burkimbia_api_key: str = ""
+    burkimbia_model: str = "bia-translation-v1-fast"
+
     # Durée des sessions acteurs. Le web est souvent un poste partagé : court.
     # L'application mobile est sur le téléphone du relais : long, sinon il se
     # reconnecte à chaque cas et finit par noter son mot de passe quelque part.
@@ -78,7 +88,9 @@ class Settings(BaseSettings):
     quick_exit_url: str = "https://www.google.com"
 
     default_lang: str = "fr"
-    languages: list[str] = ["fr", "mos", "dyu", "en"]
+    languages: list[str] = ["fr", "mos", "dyu", "en", "pt", "ar"]
+    # Langues écrites de droite à gauche : le HTML reçoit dir="rtl".
+    rtl_languages: list[str] = ["ar"]
 
     # --- WhatsApp Cloud API (Meta) ---
     # Jeton choisi par vous, à recopier dans Meta > WhatsApp > Configuration > Webhook.

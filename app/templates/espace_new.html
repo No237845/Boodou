@@ -1,18 +1,17 @@
 {% extends "base_espace.html" %}
-{% block page_title %}Saisir un cas{% endblock %}
+{% block page_title %}{{ t('actor_new_case') }}{% endblock %}
 {% block main_class %}{% endblock %}
 {% block content %}
-<p><a href="/espace">← Boîte de réception</a></p>
-<h1>Saisir un cas reçu en personne</h1>
-<p class="banner">Une personne est venue vous voir. Vous enregistrez son cas à sa place et le transmettez.
-Ne notez ni son nom, ni son numéro, ni son quartier. Donnez-lui le code de suivi affiché à la fin.</p>
+<p><a href="/espace">{{ t('actor_back_inbox') }}</a></p>
+<h1>{{ t('actor_new_case') }}</h1>
+<p class="banner">{{ t('actor_new_intro') }}</p>
 
 {% if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
 {% if suggestion %}
-<div class="banner">✨ <strong>Proposition placée dans le champ.</strong> Relisez, corrigez, puis validez : vous restez l'auteur.
-  {% if suggestion.urgency %}<br>Urgence estimée : <strong>{{ suggestion.urgency }}</strong>.{% endif %}
-  {% if suggestion.anonymity_risks %}<br>⚠ À retirer ou vérifier : {{ suggestion.anonymity_risks | join(' · ') }}{% endif %}
-  {% if suggestion.missing %}<br>Il manque : {{ suggestion.missing | join(' · ') }}{% endif %}
+<div class="banner">✨ <strong>{{ t('actor_proposed') }}</strong>
+  {% if suggestion.urgency %}<br>{{ t('actor_urgency') }} : <strong>{{ suggestion.urgency }}</strong>.{% endif %}
+  {% if suggestion.anonymity_risks %}<br>⚠ {{ t('actor_to_remove') }} : {{ suggestion.anonymity_risks | join(' · ') }}{% endif %}
+  {% if suggestion.missing %}<br>{{ t('actor_missing') }} : {{ suggestion.missing | join(' · ') }}{% endif %}
 </div>
 {% endif %}
 
@@ -23,18 +22,18 @@ Ne notez ni son nom, ni son numéro, ni son quartier. Donnez-lui le code de suiv
     {% for s in subs %}
       <label class="choice">
         <input type="radio" name="subtype" value="{{ s.value }}" {% if form.subtype == s.value %}checked{% endif %} required>
-        {{ t('subtype_' ~ s.value) }}
+        <span>{{ t('subtype_' ~ s.value) }}</span>
       </label>
     {% endfor %}
   </fieldset>
   {% endfor %}
 
-  <label for="region">Région</label>
+  <label for="region">{{ t('report_region') }}</label>
   <select id="region" name="region" required>
     {% for r in regions %}<option value="{{ r.name }}" {% if form.region == r.name %}selected{% endif %}>{{ r.name }}</option>{% endfor %}
   </select>
 
-  <label for="commune">Commune</label>
+  <label for="commune">{{ t('report_commune') }}</label>
   <select id="commune" name="commune" required>
     <option value="">—</option>
     {% for r in regions %}
@@ -44,27 +43,27 @@ Ne notez ni son nom, ni son numéro, ni son quartier. Donnez-lui le code de suiv
     {% endfor %}
   </select>
 
-  <label for="to">Transmettre à</label>
+  <label for="to">{{ t('actor_forward') }} — {{ t('actor_forward_to') | lower }}</label>
   <select id="to" name="to" required>
     <option value="">—</option>
     {% for role in forward_roles %}
-    <option value="role:{{ role.value }}" {% if form.to == 'role:' ~ role.value %}selected{% endif %}>N'importe qui : {{ role_labels[role] }} ({{ actor.region }})</option>
+    <option value="role:{{ role.value }}" {% if form.to == 'role:' ~ role.value %}selected{% endif %}>{{ t('actor_anyone') }} {{ role_labels[role] }} ({{ actor.region }})</option>
     {% endfor %}
     {% for a in targets %}
     <option value="actor:{{ a.id }}" {% if form.to == 'actor:' ~ a.id %}selected{% endif %}>{{ a.name }} — {{ role_labels[a.role] }}{% if a.organisation %}, {{ a.organisation }}{% endif %}</option>
     {% endfor %}
   </select>
 
-  <label for="description">Ce que la personne rapporte</label>
+  <label for="description">{{ t('actor_what') }}</label>
   <textarea id="description" name="description" rows="7" maxlength="2000" required>{{ form.description or '' }}</textarea>
-  <p class="hint">🔒 Chiffré. Ses mots à elle, tels qu'elle les a dits.</p>
+  <p class="hint">🔒 {{ t('actor_what_hint') }}</p>
 
-  <label for="summary">Votre reformulation concise (obligatoire)</label>
+  <label for="summary">{{ t('actor_summary_concise') }} ({{ t('actor_required') }})</label>
   <textarea id="summary" name="summary" rows="4" maxlength="2000" {% if must_summarize %}required{% endif %}
-            placeholder="En quelques phrases claires : faits, quand, où (approximativement), besoin urgent. Toujours sans nom.">{{ form.summary or '' }}</textarea>
-  <p class="hint">🔒 Chiffré. C'est ce que lira en premier la personne qui prend en charge.</p>
-  {% if ai_available %}<button type="submit" name="action" value="proposer" class="btn" formnovalidate>✨ Proposer une reformulation à partir du récit</button>{% endif %}
+            placeholder="{{ t('actor_summary_concise_hint') }}">{{ form.summary or '' }}</textarea>
+  <p class="hint">🔒 {{ t('actor_new_summary_hint') }}</p>
+  {% if ai_available %}<button type="submit" name="action" value="proposer" class="btn" formnovalidate>✨ {{ t('actor_propose') }}</button>{% endif %}
 
-  <button type="submit" name="action" value="envoyer" class="btn big primary">Enregistrer et transmettre</button>
+  <button type="submit" name="action" value="envoyer" class="btn big primary">{{ t('actor_create_and_forward') }}</button>
 </form>
 {% endblock %}

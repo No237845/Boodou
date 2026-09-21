@@ -1,29 +1,29 @@
 {% extends "base_espace.html" %}
-{% block page_title %}Boîte de réception{% endblock %}
+{% block page_title %}{{ t('actor_inbox') }}{% endblock %}
 {% block content %}
-<h1>Signalements</h1>
+<h1>{{ t('actor_inbox') }}</h1>
 <p class="muted">
-  {% if actor.role.value == 'RELAIS' %}Les signalements que des personnes de {{ actor.commune or actor.region }} vous ont adressés.
-  {% elif actor.role.value == 'POINT_FOCAL' %}Tous les cas VBG de la région {{ actor.region }} pas encore pris en charge, plus ceux qui vous sont adressés. Relisez, reformulez, transmettez.
-  {% else %}Les signalements adressés à {{ role_labels[actor.role] | lower }} ({{ actor.region }}) et ceux que vous avez pris en charge. Ouvrez un dossier pour le prendre en charge ou le déclarer réglé.{% endif %}
+  {% if actor.role.value == 'RELAIS' %}{{ t('actor_inbox_intro_relais', place=actor.commune or actor.region) }}
+  {% elif actor.role.value == 'POINT_FOCAL' %}{{ t('actor_inbox_intro_focal', region=actor.region) }}
+  {% else %}{{ t('actor_inbox_intro_other', role=role_labels[actor.role] | lower, region=actor.region) }}{% endif %}
 </p>
 
 <div class="filter">
   <div class="stack-h">
-    <a class="btn small {% if not selected_status %}primary{% endif %}" href="/espace">Tous</a>
+    <a class="btn small {% if not selected_status %}primary{% endif %}" href="/espace">{{ t('actor_all') }}</a>
     {% for st in statuses %}
     <a class="btn small {% if st.value == selected_status %}primary{% endif %}" href="/espace?status={{ st.value }}">{{ status_labels[st] }}</a>
     {% endfor %}
   </div>
-  {% if must_summarize %}<a class="btn small" href="/espace/nouveau">＋ Saisir un cas reçu en personne</a>{% endif %}
+  {% if must_summarize %}<a class="btn small" href="/espace/nouveau">＋ {{ t('actor_new_case') }}</a>{% endif %}
 </div>
 
-<p class="muted">{{ rows | length }} signalement(s).</p>
+<p class="muted">{{ t('actor_count', n=rows | length) }}</p>
 
 <div class="scroll">
 <table>
   <thead>
-    <tr><th>Date</th><th>Code</th><th>Type</th><th>Lieu</th><th>Statut</th><th>Chez qui</th><th>Récit</th></tr>
+    <tr><th>{{ t('actor_th_date') }}</th><th>{{ t('actor_th_code') }}</th><th>{{ t('actor_th_type') }}</th><th>{{ t('actor_th_place') }}</th><th>{{ t('actor_th_status') }}</th><th>{{ t('actor_th_with') }}</th><th>{{ t('actor_th_story') }}</th></tr>
   </thead>
   <tbody>
   {% for row in rows %}
@@ -36,17 +36,17 @@
       <td>{{ r.region }}{% if r.commune %}<br><span class="muted">{{ r.commune }}</span>{% endif %}</td>
       <td><span class="pill s-{{ r.status.value }}">{{ status_labels[r.status] }}</span></td>
       <td>{% if r.assignee %}{{ r.assignee.name }}<br><span class="muted">{{ role_labels[r.assignee.role] }}</span>
-          {% elif r.target_role %}<span class="muted">{{ role_labels[r.target_role] }} (non attribué)</span>{% endif %}</td>
+          {% elif r.target_role %}<span class="muted">{{ role_labels[r.target_role] }} ({{ t('actor_unassigned') }})</span>{% endif %}</td>
       <td class="desc">
-        {% if row.summary %}<strong>Reformulé :</strong> {{ row.summary | truncate(160) }}
+        {% if row.summary %}<strong>{{ t('actor_reformulated') }}</strong> {{ row.summary | truncate(160) }}
         {% elif row.description %}{{ row.description | truncate(160) }}
-        {% elif row.legacy %}<span class="muted">🔒 ancien format — voir scripts/reencrypt.py</span>
-        {% else %}<span class="error-inline">Illisible</span>{% endif %}
-        <br><a href="/espace/s/{{ r.id }}">Ouvrir →</a>
+        {% elif row.legacy %}<span class="muted">🔒 {{ t('actor_legacy') }}</span>
+        {% else %}<span class="error-inline">{{ t('actor_unreadable') }}</span>{% endif %}
+        <br><a href="/espace/s/{{ r.id }}">{{ t('actor_open') }} →</a>
       </td>
     </tr>
   {% else %}
-    <tr><td colspan="7" class="muted">Rien pour le moment.</td></tr>
+    <tr><td colspan="7" class="muted">{{ t('actor_empty') }}</td></tr>
   {% endfor %}
   </tbody>
 </table>

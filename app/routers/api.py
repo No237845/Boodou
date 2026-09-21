@@ -16,6 +16,7 @@ from sqlalchemy.orm import Session
 from .. import ratelimit
 from ..api_ai import service as ai
 from ..api_ai import transcribe as speech
+from ..api_ai import translate_cache
 from ..auth import authenticate, current_actor, issue_token, optional_actor, revoke_token
 from ..config import settings
 from ..db import get_db
@@ -315,8 +316,8 @@ def post_report(
 
 
 @router.get("/reports/{code}", response_model=TrackOut)
-def track_report(code: str, request: Request, db: Session = Depends(get_db)):
-    """Suivi d'un signalement par son code."""
+def track_report(code: str, request: Request, lang: str = settings.default_lang, db: Session = Depends(get_db)):
+    """Suivi d'un signalement par son code. `lang` : langue de la note du partenaire."""
     if not ratelimit.allow(request.client.host if request.client else None):
         raise HTTPException(status_code=429, detail="too_many_attempts")
     report = find_report(db, code)
@@ -327,7 +328,7 @@ def track_report(code: str, request: Request, db: Session = Depends(get_db)):
         status=report.status,
         created_at=report.created_at,
         status_at=report.status_at,
-        partner_note=report.partner_note,
+        partner_note=translate_cache.localized(report.partner_note, normalize_lang(lang)),
     )
 
 
@@ -337,10 +338,13 @@ def get_resources(
     subtype: ReportSubtype | None = None,
     region: str | None = None,
     category: ResourceCategory | None = None,
+    lang: str = settings.default_lang,
     db: Session = Depends(get_db),
 ):
+    """`lang` : horaires et notes traduits si la traduction est prête (sinon en français)."""
     if region is not None and region not in region_names():
         raise HTTPException(status_code=422, detail="unknown_region")
+    lang = normalize_lang(lang)
     # L'API sert des partenaires qui paginent eux-mêmes : on renvoie tout.
     rows = find_resources(db, type_=type, subtype=subtype, region=region, category=category, limit_per_category=None)
     return [
@@ -350,10 +354,10 @@ def get_resources(
             phone=r.phone,
             region=r.region,
             city=r.city,
-            hours=r.hours,
+            hours=translate_cache.localized(r.hours, lang),
             languages=r.languages.split(","),
             verified=r.verified,
-            notes=r.notes,
+            notes=translate_cache.localized(r.notes, lang),
         )
         for r in rows
     ]

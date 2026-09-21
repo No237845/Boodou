@@ -7,6 +7,7 @@ from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
 from . import migrations
+from .api_ai import translate_cache
 from .config import BASE_DIR, settings
 from .db import Base, SessionLocal, engine
 from .routers import admin, api, espace, sms, web, whatsapp
@@ -23,6 +24,9 @@ async def lifespan(_: FastAPI):
     migrations.run(engine)
     with SessionLocal() as db:
         seed_resources(db)
+        # Annuaire et notes des acteurs en mooré : cache + fil de fond.
+        # Sans BURKIMBIA_API_KEY, ne fait rien (contenu dynamique en français).
+        translate_cache.start(db)
     if not settings.report_secret_key:
         logging.getLogger("app").warning(
             "REPORT_SECRET_KEY absente : les signalements échoueront. Voir README."
@@ -83,3 +87,4 @@ app.include_router(whatsapp.router)
 app.include_router(sms.router)
 app.include_router(web.router)  # en dernier : /{lang} est un attrape-tout
 #& ".\safety_venv\Scripts\uvicorn.exe" app.main:app --reload --no-access-log --port 8000
+#uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload --no-access-log                                                                                        

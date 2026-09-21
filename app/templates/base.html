@@ -1,22 +1,26 @@
 {# Gabarit du site public. Contexte fourni par web.render() : lang, t, languages. #}
 {% extends "_layout.html" %}
+{% from "_icons.html" import icon %}
 
 {% block html_lang %}{{ lang }}{% endblock %}
+{% block html_dir %}{% if rtl %} dir="rtl"{% endif %}{% endblock %}
 {% block title %}{{ t('app_name') }}{% endblock %}
 
 {% block body %}
 <header class="top">
-  <a class="brand" href="/{{ lang }}">{{ t('app_name') }}</a>
-  <a class="exit" href="/quitter" title="{{ t('quick_exit_hint') }}">✕ {{ t('quick_exit') }}</a>
+  <a class="brand" href="/{{ lang }}"><img src="/static/logo.png" alt="" width="36" height="25">{{ t('app_name') }}</a>
+  <a class="exit" href="/quitter" title="{{ t('quick_exit_hint') }}">{{ icon('exit', 18) }} {{ t('quick_exit') }}</a>
 </header>
 
 {# lang_path : chaque page le définit pour qu'un changement de langue reste sur
    la même page au lieu de renvoyer à l'accueil. #}
+{% block langs %}
 <nav class="langs">
   {% for code, name in languages %}
     <a href="/{{ code }}{{ lang_path | default('') }}" {% if code == lang %}class="on"{% endif %}>{{ name }}</a>
   {% endfor %}
 </nav>
+{% endblock %}
 
 <main>
 {% block content %}{% endblock %}

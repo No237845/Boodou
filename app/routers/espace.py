@@ -4,8 +4,11 @@
 - /espace/s/{id}       : un signalement, avec reformulation / transmission / statut
 - /espace/nouveau      : saisir le cas d'une personne venue me voir en personne
 
-Même principe que l'espace admin : HTML côté serveur, français uniquement,
-cookie de session HttpOnly + SameSite=Strict (pas de jeton anti-CSRF nécessaire).
+Même principe que l'espace admin : HTML côté serveur, cookie de session
+HttpOnly + SameSite=Strict (pas de jeton anti-CSRF nécessaire). Traduit dans les
+langues du site (clés actor_* / role_*) : la langue choisie tient dans un cookie
+propre à /espace — les acteurs sont identifiés, la promesse « aucun cookie » ne
+concerne que le parcours public.
 L'application mobile fait exactement la même chose via /api (Bearer).
 """
 
@@ -19,7 +22,7 @@ from ..api_ai import service as ai
 from ..auth import SESSION_COOKIE, actor_from_token, authenticate, issue_token, revoke_token
 from ..config import BASE_DIR, settings
 from ..db import get_db
-from ..i18n import translator
+from ..i18n import LANG_NAMES, normalize_lang, translator
 from ..models import CASE_HANDLERS, FORWARD_TARGETS, MUST_SUMMARIZE, SUBTYPES, Actor, ActorRole, Channel, EventKind, ReportStatus, format_code
 from ..seed import communes_of, load_regions
 from ..services import (
@@ -38,36 +41,36 @@ from ..services import (
 router = APIRouter(prefix="/espace", include_in_schema=False)
 templates = Jinja2Templates(directory=BASE_DIR / "templates")
 
-ROLE_LABELS = {
-    ActorRole.RELAIS: "Relais communautaire",
-    ActorRole.POINT_FOCAL: "Point focal VBG",
-    ActorRole.ACTION_SOCIALE: "Action sociale",
-    ActorRole.GESTIONNAIRE: "Gestionnaire de cas",
-}
-
-STATUS_LABELS = {
-    ReportStatus.RECU: "Reçu",
-    ReportStatus.TRANSMIS: "Transmis",
-    ReportStatus.PRIS_EN_CHARGE: "Pris en charge",
-    ReportStatus.REGLE: "Réglé",
-}
-
-# Libellés en français pour l'espace acteurs : ceux de fr.json, sans passer par
-# la langue de l'usager.
-_t = translator("fr")
+LANG_COOKIE = "espace_lang"
 
 
-def _ctx(actor: Actor, **extra) -> dict:
+def espace_lang(espace_lang: str | None = Cookie(default=None)) -> str:
+    """Langue de l'espace acteurs, depuis son cookie ; français sinon."""
+    return normalize_lang(espace_lang)
+
+
+def _base_ctx(lang: str) -> dict:
+    t = translator(lang)
     return {
+        "lang": lang,
+        "rtl": lang in settings.rtl_languages,
+        "t": t,
+        "languages": [(code, LANG_NAMES[code]) for code in settings.languages],
+        "role_labels": {r: t("role_" + r.value) for r in ActorRole},
+        "status_labels": {st: t("status_" + st.value) for st in ReportStatus},
+    }
+
+
+def _ctx(actor: Actor, lang: str, **extra) -> dict:
+    base = _base_ctx(lang)
+    return {
+        **base,
         "actor": actor,
-        "role_labels": ROLE_LABELS,
-        "status_labels": STATUS_LABELS,
         "statuses": list(ReportStatus),
-        "t": _t,
         "can_set_status": actor.role in CASE_HANDLERS,
         "must_summarize": actor.role in MUST_SUMMARIZE,
         "ai_available": ai.enabled(),
-        "can_forward_to": [ROLE_LABELS[r] for r in FORWARD_TARGETS[actor.role]],
+        "can_forward_to": [base["role_labels"][r] for r in FORWARD_TARGETS[actor.role]],
         **extra,
     }
 
@@ -79,8 +82,21 @@ def require_actor(
     return actor_from_token(db, espace_session)
 
 
-def _login_page(request: Request, error: str | None = None, status_code: int = 200):
-    return templates.TemplateResponse(request, "espace_login.html", {"error": error}, status_code=status_code)
+def _login_page(request: Request, lang: str, error: str | None = None, status_code: int = 200):
+    return templates.TemplateResponse(request, "espace_login.html", {**_base_ctx(lang), "error": error}, status_code=status_code)
+
+
+@router.get("/langue/{code}")
+def set_lang(code: str, request: Request, next: str = "/espace"):
+    """Change la langue de l'espace : cookie limité à /espace, un an."""
+    if not next.startswith("/espace"):
+        next = "/espace"
+    response = RedirectResponse(next, status_code=303)
+    response.set_cookie(
+        LANG_COOKIE, normalize_lang(code), max_age=365 * 24 * 3600, samesite="strict",
+        path="/espace", secure=request.url.scheme == "https",
+    )
+    return response
 
 
 # --------------------------------------------------------------------------- session
@@ -91,13 +107,15 @@ def login(
     request: Request,
     username: str = Form(""),
     password: str = Form(""),
+    lang: str = Depends(espace_lang),
     db: Session = Depends(get_db),
 ):
+    t = translator(lang)
     if not ratelimit.allow(request.client.host if request.client else None):
-        return _login_page(request, "Trop de tentatives. Réessayez dans un quart d'heure.", 429)
+        return _login_page(request, lang, t("actor_too_many"), 429)
     actor = authenticate(db, username, password)
     if actor is None:
-        return _login_page(request, "Identifiant ou mot de passe incorrect.", 401)
+        return _login_page(request, lang, t("actor_bad_credentials"), 401)
     token = issue_token(db, actor, ttl=settings.actor_session_ttl_web)
     response = RedirectResponse("/espace", status_code=303)
     response.set_cookie(
@@ -128,15 +146,16 @@ def index(
     request: Request,
     status: str = "",
     actor: Actor | None = Depends(require_actor),
+    lang: str = Depends(espace_lang),
     db: Session = Depends(get_db),
 ):
     if actor is None:
-        return _login_page(request)
+        return _login_page(request, lang)
     selected = ReportStatus(status) if status in ReportStatus.__members__ else None
     reports = inbox(db, actor, status=selected)
     rows = [{"report": r, "code": format_code(r.id), **decrypt_texts(r)} for r in reports]
     return templates.TemplateResponse(
-        request, "espace_inbox.html", _ctx(actor, rows=rows, selected_status=status)
+        request, "espace_inbox.html", _ctx(actor, lang, rows=rows, selected_status=status)
     )
 
 
@@ -147,10 +166,11 @@ def detail(
     error: str = "",
     info: str = "",
     actor: Actor | None = Depends(require_actor),
+    lang: str = Depends(espace_lang),
     db: Session = Depends(get_db),
 ):
     if actor is None:
-        return _login_page(request)
+        return _login_page(request, lang)
     try:
         report = get_visible_report(db, actor, report_id)
     except Forbidden:
@@ -166,6 +186,7 @@ def detail(
         "espace_report.html",
         _ctx(
             actor,
+            lang,
             report=report,
             code=format_code(report.id),
             targets=forward_targets(db, actor),
@@ -174,7 +195,7 @@ def detail(
             created_info=info == "created",
             summary_info=info == "summary",
             # Seules nos propres clés d'erreur sont affichées : pas d'écho d'un texte venu de l'URL.
-            error=_t(error) if error.startswith("report_error_") else None,
+            error=translator(lang)(error) if error.startswith("report_error_") else None,
             **decrypt_texts(report),
         ),
     )
@@ -211,12 +232,13 @@ def do_forward(
     return RedirectResponse("/espace", status_code=303)
 
 
-def _render_detail(request: Request, actor: Actor, db: Session, report, **extra):
+def _render_detail(request: Request, actor: Actor, db: Session, lang: str, report, **extra):
     already = actor.role in MUST_SUMMARIZE and any(
         e.kind == EventKind.FORWARDED and e.actor_id == actor.id for e in report.events
     )
     ctx = _ctx(
         actor,
+        lang,
         report=report,
         code=format_code(report.id),
         targets=forward_targets(db, actor),
@@ -236,11 +258,13 @@ def propose_summary(
     request: Request,
     report_id: str,
     actor: Actor | None = Depends(require_actor),
+    lang: str = Depends(espace_lang),
     db: Session = Depends(get_db),
 ):
     """Demande une proposition de reformulation et la place dans le champ. Rien n'est enregistré."""
     if actor is None:
-        return _login_page(request)
+        return _login_page(request, lang)
+    t = translator(lang)
     try:
         report = get_visible_report(db, actor, report_id)
     except Forbidden:
@@ -251,11 +275,11 @@ def propose_summary(
             text,
             region=report.region,
             commune=report.commune or "",
-            subtype_label=_t("subtype_" + report.subtype.value) if report.subtype else "",
+            subtype_label=t("subtype_" + report.subtype.value) if report.subtype else "",
         )
     except ai.AiUnavailable:
-        return _render_detail(request, actor, db, report, error=_t("ai_unavailable"))
-    return _render_detail(request, actor, db, report, draft_summary=s.summary, suggestion=s)
+        return _render_detail(request, actor, db, lang, report, error=t("ai_unavailable"))
+    return _render_detail(request, actor, db, lang, report, draft_summary=s.summary, suggestion=s)
 
 
 @router.post("/s/{report_id}/reformuler")
@@ -301,9 +325,10 @@ def do_status(
 # --------------------------------------------------------------------------- saisie par un acteur
 
 
-def _new_ctx(actor: Actor, db: Session, form: dict, error: str | None) -> dict:
+def _new_ctx(actor: Actor, db: Session, lang: str, form: dict, error: str | None) -> dict:
     return _ctx(
         actor,
+        lang,
         regions=load_regions(),
         subtypes=SUBTYPES,
         targets=forward_targets(db, actor),
@@ -314,14 +339,19 @@ def _new_ctx(actor: Actor, db: Session, form: dict, error: str | None) -> dict:
 
 
 @router.get("/nouveau", response_class=HTMLResponse)
-def new_form(request: Request, actor: Actor | None = Depends(require_actor), db: Session = Depends(get_db)):
+def new_form(
+    request: Request,
+    actor: Actor | None = Depends(require_actor),
+    lang: str = Depends(espace_lang),
+    db: Session = Depends(get_db),
+):
     if actor is None:
-        return _login_page(request)
+        return _login_page(request, lang)
     if actor.role not in MUST_SUMMARIZE:
         # L'action sociale et les gestionnaires traitent, ils ne relaient pas.
         raise HTTPException(status_code=403, detail="forbidden")
     form = {"region": actor.region, "commune": actor.commune or ""}
-    return templates.TemplateResponse(request, "espace_new.html", _new_ctx(actor, db, form, None))
+    return templates.TemplateResponse(request, "espace_new.html", _new_ctx(actor, db, lang, form, None))
 
 
 @router.post("/nouveau", response_class=HTMLResponse)
@@ -335,6 +365,7 @@ def new_submit(
     summary: str = Form(""),
     action: str = Form(""),
     actor: Actor | None = Depends(require_actor),
+    lang: str = Depends(espace_lang),
     db: Session = Depends(get_db),
 ):
     """Un relais enregistre un cas reçu en personne, le reformule et le transmet dans la foulée.
@@ -343,19 +374,20 @@ def new_submit(
     proposition de reformulation dans le champ, que le relais relit.
     """
     if actor is None:
-        return _login_page(request)
+        return _login_page(request, lang)
+    t = translator(lang)
     if actor.role not in MUST_SUMMARIZE:
         raise HTTPException(status_code=403, detail="forbidden")
     form = {"subtype": subtype, "region": region, "commune": commune, "to": to, "description": description, "summary": summary}
     if action == "proposer":
         try:
             s = ai.suggest_summary(
-                description, region=region, commune=commune, subtype_label=_t("subtype_" + subtype) if subtype else ""
+                description, region=region, commune=commune, subtype_label=t("subtype_" + subtype) if subtype else ""
             )
         except ai.AiUnavailable:
-            return templates.TemplateResponse(request, "espace_new.html", _new_ctx(actor, db, form, _t("ai_unavailable")))
+            return templates.TemplateResponse(request, "espace_new.html", _new_ctx(actor, db, lang, form, t("ai_unavailable")))
         form["summary"] = s.summary
-        return templates.TemplateResponse(request, "espace_new.html", {**_new_ctx(actor, db, form, None), "suggestion": s})
+        return templates.TemplateResponse(request, "espace_new.html", {**_new_ctx(actor, db, lang, form, None), "suggestion": s})
     kind, _, value = to.partition(":")
     try:
         if commune and commune not in communes_of(region):
@@ -377,6 +409,6 @@ def new_submit(
         )
     except ValidationError as e:
         return templates.TemplateResponse(
-            request, "espace_new.html", _new_ctx(actor, db, form, _t(e.key, **e.params)), status_code=422
+            request, "espace_new.html", _new_ctx(actor, db, lang, form, t(e.key, **e.params)), status_code=422
         )
     return RedirectResponse(f"/espace/s/{report.id}?info=created", status_code=303)

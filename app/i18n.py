@@ -11,7 +11,7 @@ from .config import BASE_DIR, settings
 
 LOCALES_DIR = BASE_DIR / "locales"
 
-LANG_NAMES = {"fr": "Français", "mos": "Mooré", "dyu": "Dioula", "en": "English"}
+LANG_NAMES = {"fr": "Français", "mos": "Mooré", "dyu": "Dioula", "en": "English", "pt": "Português", "ar": "العربية"}
 
 
 @lru_cache
